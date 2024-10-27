@@ -1,11 +1,15 @@
-import { GlobalStyles } from "./Styles/global";
+import TypingBox from "./Components/TypingBox.jsx";
+import UpperMenu from "./Components/UpperMenu.jsx";
+import { GlobalStyles } from "./Styles/global.js";
 
 function App() {
   return (
-    <div className="App">
+    
+    <div className="canvas">
       <GlobalStyles />
-      <div className="test">Testing</div>
-      hello world 
+      <div>Header</div>
+      <TypingBox/>
+      <div>Footer</div>
     </div>
   );
 }
