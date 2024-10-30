@@ -115,13 +115,55 @@ body {
   color: green;
   cursor: pointer;
 }
-
 .footer {
-  max-width: 1000px;
   display: flex;
   justify-content: space-between;
-  margin-left: auto;
-  margin-right: auto;
-  color: ${({ theme }) => theme.textColor}; // Use theme text color
+  align-items: center;
+  padding: 1rem 2rem;
+  padding-left: 3rem; /* Increase left padding */
+  max-width: 2000px;
+  margin: 0 auto;
+  color: ${({ theme }) => theme.textColor};
 }
+
+
+
+.footer-left {
+  font-size: 0.9rem;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2rem; /* Add margin to the left of the right section */
+}
+
+.footer-right a {
+  display: flex;
+  align-items: center;
+  color: ${({ theme }) => theme.textColor};
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-right a:hover {
+  color: #ccc;
+}
+.footer-right a img {
+  fill: ${({ theme }) => theme.textColor}; /* Only if inline fill is removed */
+  width: 24px; /* Set a fixed width */
+  height: 24px; /* Set a fixed height */
+}
+
+.footer-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 0.5rem;
+}
+
+.theme-select {
+  min-width: 150px;
+}
+
 `;
