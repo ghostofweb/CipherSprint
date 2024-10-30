@@ -21,7 +21,7 @@ body {
   grid-template-rows: auto 1fr auto;
   gap: 0.5rem;
   padding: 2rem;
-  width: 70vw; /* Set to 70% of viewport width */
+  width: 80vw; /* Set to 70% of viewport width */
   max-width: 2000px; /* Optional max width */
   text-align: center;
   align-items: center;
@@ -31,7 +31,7 @@ body {
 .type-box {
   display: block;
   max-width: 2000px;
-  height: 200px;
+  height: 220px;
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
@@ -43,7 +43,7 @@ body {
 }
 
 .words {
-  font-size: 50px;
+  font-size: 38px;
   display: flex;
   flex-wrap: wrap;
   align-content: center;
@@ -122,7 +122,7 @@ body {
   align-items: center;
   padding: 1rem 2rem;
   padding-left: 3rem; /* Increase left padding */
-  width: 70vw; /* Set to 70% of viewport width */
+  width: 80vw; /* Set to 70% of viewport width */
   max-width: 2000px; /* Optional max width */
   margin: 0 auto; /* Center the footer horizontally */
   color: ${({ theme }) => theme.textColor};
