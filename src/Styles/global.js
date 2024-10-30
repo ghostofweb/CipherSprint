@@ -47,6 +47,8 @@ body {
   padding-right: 2px;
 }
 
+
+
 .hidden-input {
   opacity: 0;
 }
@@ -58,7 +60,9 @@ body {
 .incorrect {
   color: red;
 }
-
+.extra{
+  color: #6d3e3e
+}
 .current {
     border-left: 1px solid;
     animation: blinkingLeft 1s infinite;

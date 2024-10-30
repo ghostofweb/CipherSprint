@@ -1,6 +1,6 @@
-import React, { createRef, useEffect, useMemo, useRef, useState } from 'react';
 import {generate} from "random-words";
 import UpperMenu from './UpperMenu.jsx';
+import React, { createRef, useEffect, useMemo, useRef, useState } from 'react';
 
 function TypingBox() {
     
@@ -47,6 +47,38 @@ function TypingBox() {
             }
             return;
         }
+
+        if(e.keyCode === 8){
+            // logic for backspace
+            if(currCharIndex !== 0){
+
+                if(allCurrChars.length === currCharIndex){
+                    if(allCurrChars[currCharIndex-1].className.includes('extra')){
+                        allCurrChars[currCharIndex-1].remove()
+                        allCurrChars[currCharIndex - 2].className += " current-right"
+                    }else{
+                    allCurrChars[currCharIndex - 1].className = 'current';
+                    }
+                   setCurrCharIndex(currCharIndex - 1);
+                   return;
+                }
+
+                allCurrChars[currCharIndex].className = ' '
+                allCurrChars[currCharIndex-1].className = 'current'
+                setCurrCharIndex(currCharIndex - 1)
+        }
+        return;
+    }
+    if(currCharIndex === allCurrChars.length){
+        //extra words
+        let newSpan = document.createElement("span");
+        newSpan.innerText = e.key;
+        newSpan.className = 'incorrect extra current-right'
+        allCurrChars[currCharIndex-1].classList.remove("current-right")
+        wordsSpanRef[currWordIndex].current.append(newSpan)
+        setCurrCharIndex(currCharIndex + 1);
+        return;
+    }
     
         // Handle character input
         if (currCharIndex < allCurrChars.length) {
@@ -72,14 +104,6 @@ function TypingBox() {
         }
     };
     
-    
-    
-    
-    
-    
-  
-    
-
     function focusInput(){ 
         inputRef.current.focus()
     }
