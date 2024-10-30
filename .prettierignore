@@ -1,0 +1,9 @@
+# Ignore all files except JavaScript and JSX files
+*
+!*.js
+!*.jsx
+
+# Optionally ignore certain directories
+node_modules
+build
+dist

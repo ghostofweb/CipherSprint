@@ -1,0 +1,8 @@
+{
+  "printWidth": 80,      // max line width
+  "tabWidth": 2,         // number of spaces per indentation level
+  "useTabs": false,      // use spaces for indentation
+  "semi": true,          // add a semicolon at the end of statements
+  "singleQuote": true,   // use single quotes instead of double quotes
+  "jsxSingleQuote": true // use single quotes in JSX
+}
