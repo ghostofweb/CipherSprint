@@ -21,9 +21,11 @@ body {
   grid-template-rows: auto 1fr auto;
   gap: 0.5rem;
   padding: 2rem;
-  width: 100vw;
+  width: 70vw; /* Set to 70% of viewport width */
+  max-width: 2000px; /* Optional max width */
   text-align: center;
   align-items: center;
+  margin: 0 auto; /* Center the canvas horizontally */
 }
 
 .type-box {
@@ -97,9 +99,7 @@ body {
 
 .upper-menu {
   display: flex;
-  width: 2000px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%; /* Allow it to stretch the full width */
   justify-content: space-between;
   font-size: 30px;
   padding: 0.5rem;
@@ -115,18 +115,18 @@ body {
   color: green;
   cursor: pointer;
 }
+
 .footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
   padding-left: 3rem; /* Increase left padding */
-  max-width: 2000px;
-  margin: 0 auto;
+  width: 70vw; /* Set to 70% of viewport width */
+  max-width: 2000px; /* Optional max width */
+  margin: 0 auto; /* Center the footer horizontally */
   color: ${({ theme }) => theme.textColor};
 }
-
-
 
 .footer-left {
   font-size: 0.9rem;
@@ -150,6 +150,7 @@ body {
 .footer-right a:hover {
   color: #ccc;
 }
+
 .footer-right a img {
   fill: ${({ theme }) => theme.textColor}; /* Only if inline fill is removed */
   width: 24px; /* Set a fixed width */
