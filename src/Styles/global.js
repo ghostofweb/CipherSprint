@@ -103,4 +103,8 @@ body {
   display: flex;
   gap: 0.4rem;
 }
+.time-mode:hover{
+  color:green;
+  cursor: pointer;
+}
 `;

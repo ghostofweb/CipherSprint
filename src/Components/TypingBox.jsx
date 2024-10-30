@@ -1,20 +1,36 @@
 import {generate} from "random-words";
 import UpperMenu from './UpperMenu.jsx';
 import React, { createRef, useEffect, useMemo, useRef, useState } from 'react';
+import { useTestMode } from "../Context/TestModeContext.jsx";
 
 function TypingBox() {
     
     const inputRef = useRef(null)
+    const {testTime} = useTestMode();
     const [wordsArray, setWordsArray] = useState(() => generate(50));
-
-    const  [currWordIndex, setCurrWordIndex] = useState(0)
+    const [countDown,setCountDown] = useState();
+    const [testStart,setTestStart] = useState(false)
+    const [testEnd,setTestEnd] = useState(false)
+    const [currWordIndex, setCurrWordIndex] = useState(0)
     const [currCharIndex, setCurrCharIndex] = useState(0)
 
     const wordsSpanRef = useMemo(()=>{
         return Array(wordsArray.length).fill(0).map(i=>createRef(null))  
     },[wordsArray])
 
-    
+    const startTimer = ()=>{
+        const intervalId = setInterval(timer,1000)
+
+        function timer(){
+            setCountDown((latestCountDown)=>{
+                if(latestCountDown === 1){
+                    setTestEnd(true);
+                    clearInterval(intervalId);
+                    return 0;
+                }
+            })
+        }
+    }
     const handleUserInput = (e) => {
         const allCurrChars = wordsSpanRef[currWordIndex]?.current?.childNodes;
     
@@ -107,7 +123,9 @@ function TypingBox() {
     function focusInput(){ 
         inputRef.current.focus()
     }
-
+    useEffect(()=>{
+        setCountDown(testTime)
+    },[testTime])
     useEffect(()=>{
         focusInput()
         wordsSpanRef[0].current.childNodes[0].className = "current"
@@ -116,28 +134,32 @@ function TypingBox() {
     
     return (
         <div>
-        <div className='type-box' onClick={focusInput}>
-            <UpperMenu/>
-            <div className='words'>
-                {
-                    wordsArray.map((word, index) => (
-                        <span className='word' ref={wordsSpanRef[index]} key={index}>
-                            {word.split('').map((char,charIndex) => (
-                                <span key={charIndex}>{char}</span>
-                            ))}
-                        </span>
-                    ))
-                }
-            </div>
-        </div>
-        <input
-        typeof='text'
-        onKeyDown={handleUserInput}
-        className='hidden-input'
-        ref={inputRef}
-        />
+            <UpperMenu countDown={countDown} />
+            {(testEnd) ? (
+                <h1>Test Over</h1>
+            ) : (
+                <div className="type-box" onClick={focusInput}>
+                    <div className='words'>
+                        {
+                            wordsArray.map((word, index) => (
+                                <span className='word' ref={wordsSpanRef[index]} key={index}>
+                                    {word.split('').map((char, charIndex) => (
+                                        <span key={charIndex}>{char}</span>
+                                    ))}
+                                </span>
+                            ))
+                        }
+                    </div>
+                </div>
+            )}
+            <input
+                type='text'
+                onKeyDown={handleUserInput}
+                className='hidden-input'
+                ref={inputRef}
+            />
         </div>
     );
+    
 }
-
 export default TypingBox;
