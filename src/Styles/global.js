@@ -1,6 +1,7 @@
 import { createGlobalStyle } from "styled-components";
 
 export const GlobalStyles = createGlobalStyle`
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -12,6 +13,8 @@ body {
   margin: 0;
   padding: 0;
   transition: all 0.3s linear;
+  font-family: "Roboto Mono", monospace;
+  font-style: normal;
 }
 
 .canvas {
@@ -31,7 +34,7 @@ body {
 .type-box {
   display: block;
   max-width: 2000px;
-  height: 220px;
+  height: 240px;
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
@@ -167,4 +170,38 @@ body {
   min-width: 150px;
 }
 
+.stats-box {
+  display: flex;
+  width: 100%;
+  max-width: 2000px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 2rem; /* Optional gap between left and right sections */
+}
+
+.left-stats {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.right-stats {
+  flex: 2;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title{
+  font-size: 20px;
+  color: ${({theme})=>theme.typeBoxColor}
+}
+
+.subtitle{
+  font-size: 30px;
+}
 `;
