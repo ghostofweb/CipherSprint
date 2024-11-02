@@ -8,25 +8,37 @@ import GoogleButton from 'react-google-button';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { Bounce, toast } from 'react-toastify';
-
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useNavigate } from 'react-router-dom';
 
 function AccountCircle() {
   const { theme } = useTheme();  
-  const [ open , setOpen] = useState(false);
-  const [ value , setValue] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(0);
+  const [user] = useAuthState(auth);
+  const navigate = useNavigate();
 
   const handleValueChange = (e, v) => {
     setValue(v);
   };
-  const handleModalOpen = () => setOpen(true);
+
+  const handleModalOpen = () => {
+    if(user){
+      navigate("/user");
+    } else {
+      setOpen(true);
+    }
+  };
+
   const handleClose = () => setOpen(false);
 
   const googleProvider = new GoogleAuthProvider();
 
-  const handleGoogleSign = async ()=>{
+  const logout = async () => {
     try {
-      await signInWithPopup(auth,googleProvider)
-      toast.success(`Google Auth Successfull`,{
+      await auth.signOut();
+      toast.success(`Logout Successfully`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -38,7 +50,37 @@ function AccountCircle() {
         transition: Bounce,
       });
     } catch (error) {
-      toast.error(`something went wrong with google auth ${error.code}`, {
+      toast.error(`Couldn't Logout ${error}`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
+    }
+  };
+
+  const handleGoogleSign = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success(`Google Auth Successful`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
+      setOpen(false); // Close modal on successful sign-in
+    } catch (error) {
+      toast.error(`Something went wrong with Google Auth ${error.code}`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -50,14 +92,29 @@ function AccountCircle() {
         transition: Bounce,
       });
     } 
-  }
+  };
+
   return (
     <div>
-      <AccountCircleIcon
-        fontSize="large"
-        onClick={handleModalOpen}
-        style={{ color: theme.textColor, cursor: 'pointer' }} // Added cursor pointer for better UX
-      />
+      <Box display="flex" alignItems="center">
+        <AccountCircleIcon
+          fontSize="large"
+          onClick={handleModalOpen}
+          style={{ color: theme.textColor, cursor: 'pointer' }} 
+        />
+        {user && (
+          <LogoutIcon
+            onClick={logout}
+            style={{
+              marginLeft: '8px',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          />
+        )}
+      </Box>
       <Modal
         open={open}
         onClose={handleClose}
@@ -65,14 +122,14 @@ function AccountCircle() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)' // Slightly more opaque background
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
         }}
       >
         <div
           style={{
             width: '400px',
-            maxHeight: '90vh', // Limit the height of the modal
-            overflowY: 'auto', // Enable vertical scrolling if needed
+            maxHeight: '90vh',
+            overflowY: 'auto',
             background: theme.background,
             color: theme.textColor,
             borderRadius: '8px',
@@ -93,14 +150,12 @@ function AccountCircle() {
             </Tabs>
           </AppBar>
           <div style={{ padding: '16px' }}>
-            {value === 0 && <LoginForm />}
-            {value === 1 && <SignupForm />}
+            {value === 0 && <LoginForm onSuccess={handleClose} />} {/* Pass onSuccess to LoginForm */}
+            {value === 1 && <SignupForm onSuccess={handleClose} />} {/* Pass onSuccess to SignupForm */}
           </div>
-          <Typography variant="body1" sx={{display:"flex",justifyContent:"center"}}>Or</Typography>
-          <Box sx={{ textAlign: 'center', padding: '16px', color: theme.textColor ,justifyContent:"center", display:"flex"}}>
-            <GoogleButton style={{width:"100%"}} 
-              onClick={handleGoogleSign} 
-            />
+          <Typography variant="body1" sx={{ display: "flex", justifyContent: "center" }}>Or</Typography>
+          <Box sx={{ textAlign: 'center', padding: '16px', color: theme.textColor, justifyContent: "center", display: "flex" }}>
+            <GoogleButton style={{ width: "100%" }} onClick={handleGoogleSign} />
           </Box>
         </div>
       </Modal>

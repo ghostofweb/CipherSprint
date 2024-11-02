@@ -3,24 +3,25 @@ import UpperMenu from './UpperMenu.jsx';
 import React, { createRef, useEffect, useMemo, useRef, useState } from 'react';
 import { useTestMode } from "../Context/TestModeContext.jsx";
 import Stats from "./Stats.jsx";
-
+import { Replay } from "@mui/icons-material";
 function TypingBox() {
     const inputRef = useRef(null);
+    const replayButtonRef = useRef(null);
     const { testTime } = useTestMode();
-    const [wordsArray, setWordsArray] = useState(() => generate(100));
-    const [intervalId,setInteralId] = useState(null)
+    const [wordsArray, setWordsArray] = useState(() => generate(1000));
+    const [intervalId, setIntervalId] = useState(null);
     const [countDown, setCountDown] = useState(testTime);
     const [testStart, setTestStart] = useState(false);
     const [testEnd, setTestEnd] = useState(false);
     const [currWordIndex, setCurrWordIndex] = useState(0);
     const [currCharIndex, setCurrCharIndex] = useState(0);
-
-    const [correctChars,setCorrectChars] = useState(0)
-    const [incorrectChars,setIncorrectChars] = useState(0)
-    const [missedChars,setMissedChars] = useState(0)
-    const [extraChars,setExtraChars] = useState(0)
-    const [correctWords,setCorrectWords] = useState(0) 
-    const [graphData,setGraphData] = useState([])
+    
+    const [correctChars, setCorrectChars] = useState(0);
+    const [incorrectChars, setIncorrectChars] = useState(0);
+    const [missedChars, setMissedChars] = useState(0);
+    const [extraChars, setExtraChars] = useState(0);
+    const [correctWords, setCorrectWords] = useState(0);
+    const [graphData, setGraphData] = useState([]);
 
     const wordsSpanRef = useMemo(() => {
         return Array(wordsArray.length).fill(0).map(() => createRef(null));
@@ -28,17 +29,17 @@ function TypingBox() {
 
     const startTimer = () => {
         const intervalId = setInterval(() => {
-            setInteralId(intervalId)
+            setIntervalId(intervalId);
             setCountDown((prevCount) => {
-                setCorrectChars((correctChars)=>{
-                    setGraphData((graphData)=>{
-                        return[...graphData,[
-                            testTime - prevCount+ 1,
-                            (correctChars/5)/((testTime - prevCount + 1)/60)
-                        ]]
-                    })
+                setCorrectChars((correctChars) => {
+                    setGraphData((graphData) => {
+                        return [...graphData, [
+                            testTime - prevCount + 1,
+                            (correctChars / 5) / ((testTime - prevCount + 1) / 60)
+                        ]];
+                    });
                     return correctChars;
-                })
+                });
                 if (prevCount === 1) {
                     setTestEnd(true);
                     clearInterval(intervalId);
@@ -49,150 +50,167 @@ function TypingBox() {
         }, 1000);
     };
 
-    const resetTest = ()=>{
-        clearInterval(intervalId)
-        setCountDown(testTime)
-        setCurrWordIndex(0)
-        setCurrCharIndex(0)
+    const resetTest = () => {
+        clearInterval(intervalId);
+        setCountDown(testTime);
+        setCurrWordIndex(0);
+        setCurrCharIndex(0);
         setTestStart(false);
         setTestEnd(false);
-        setWordsArray(generate(100)) 
+        setWordsArray(generate(100));
         resetWordSpanRefClassname();
-        focusInput()
-    }
+        focusInput();
+    };
 
     const resetWordSpanRefClassname = () => {
         wordsSpanRef.forEach((wordRef) => {
             if (wordRef.current) {
-                // Clear all child spans and only keep original characters
                 const originalChars = Array.from(wordRef.current.childNodes).slice(0, wordRef.current.dataset.wordLength);
-                
-                // Remove any extra characters
                 while (wordRef.current.lastChild && wordRef.current.childNodes.length > originalChars.length) {
                     wordRef.current.removeChild(wordRef.current.lastChild);
                 }
-    
-                // Reset class names for original spans
                 originalChars.forEach((child) => {
                     child.className = "";
                 });
             }
         });
-        // Set the first character of the first word as current
         wordsSpanRef[0]?.current?.childNodes[0]?.classList.add("current");
     };
-  
-    
-    const handleUserInput = (e) => {
-        // console.log(e);
 
-        if (!wordsSpanRef[currWordIndex]?.current) {
-            return;  // Exit if current word reference is not available
-        }
-    
-        if (!testStart) {
+  
+
+    const handleUserInput = (e) => {
+      if (!wordsSpanRef[currWordIndex]?.current) {
+          return;
+      }
+  
+      const allCurrChars = wordsSpanRef[currWordIndex].current.childNodes;
+  
+      // Prevent timer from starting on non-input keys
+      const isAlphabet = /^[A-Za-z]$/.test(e.key);
+  
+      // Start timer only when valid input is detected
+      if (!testStart && isAlphabet) {
           startTimer();
           setTestStart(true);
-        }
-    
-        const allCurrChars = wordsSpanRef[currWordIndex].current.childNodes;
-    
-        // console.log(allCurrChars);
-        if (e.keyCode === 32) {
-          //logic for space
-    
-          let correctCharsInWord =
-            wordsSpanRef[currWordIndex].current.querySelectorAll(".correct");
-    
+      }
+  
+      // Handle space key
+      if (e.keyCode === 32) {
+          let correctCharsInWord = wordsSpanRef[currWordIndex].current.querySelectorAll(".correct");
           if (correctCharsInWord.length === allCurrChars.length) {
-            setCorrectWords(correctWords + 1);
+              setCorrectWords(correctWords + 1);
           }
-    
+  
           if (allCurrChars.length <= currCharIndex) {
-            //remove cursor from last place in word
-            allCurrChars[currCharIndex - 1].classList.remove("current-right");
+              allCurrChars[currCharIndex - 1].classList.remove("current-right");
           } else {
-            //remove cursor from in between of the word
-            allCurrChars[currCharIndex].classList.remove("current");
-            setMissedChars(missedChars + (allCurrChars - currCharIndex));
+              allCurrChars[currCharIndex].classList.remove("current");
+              setMissedChars(missedChars + (allCurrChars.length - currCharIndex));
           }
-    
-          wordsSpanRef[currWordIndex + 1].current.childNodes[0].className =
-            "current";
-          setCurrWordIndex(currWordIndex + 1);
-          setCurrCharIndex(0);
-          return;
-        }
-    
-        if (e.keyCode === 8) {
-          //Logic for backspace
-          if (currCharIndex !== 0) {
-            if (allCurrChars.length === currCharIndex) {
-              if (allCurrChars[currCharIndex - 1].className.includes("extra")) {
-                allCurrChars[currCharIndex - 1].remove();
-                allCurrChars[currCharIndex - 2].className += " current-right";
-              } else {
-                allCurrChars[currCharIndex - 1].className = "current";
+  
+          // Move to the next word
+          const nextWordIndex = currWordIndex + 1;
+          if (nextWordIndex < wordsSpanRef.length) {
+              if (wordsSpanRef[nextWordIndex] && wordsSpanRef[nextWordIndex].current) {
+                  wordsSpanRef[nextWordIndex].current.childNodes[0].className = "current";
               }
-              setCurrCharIndex(currCharIndex - 1);
-              return;
-            }
-    
-            allCurrChars[currCharIndex].className = "";
-            allCurrChars[currCharIndex - 1].className = "current";
-            setCurrCharIndex(currCharIndex - 1);
+          } else {
+              // If the last word is reached, end the test
+              setTestEnd(true);
+              clearInterval(intervalId); // Stop the timer if necessary
+              return; // Exit the function
           }
-    
+  
+          setCurrWordIndex(nextWordIndex);
+          setCurrCharIndex(0);
+          // Scroll to keep the current word in view
+          scrollToCurrent();
           return;
-        }
-    
-        if (currCharIndex === allCurrChars.length) {
-          let newSpan = document.createElement("span");
-          newSpan.innerText = e.key;
-          newSpan.className = "incorrect extra current-right";
-          allCurrChars[currCharIndex - 1].classList.remove("current-right");
-          wordsSpanRef[currWordIndex].current.append(newSpan);
+      }
+  
+      // Allow backspace
+      if (e.keyCode === 8) {
+          if (currCharIndex !== 0) {
+              if (allCurrChars.length === currCharIndex) {
+                  if (allCurrChars[currCharIndex - 1].className.includes("extra")) {
+                      allCurrChars[currCharIndex - 1].remove();
+                      allCurrChars[currCharIndex - 2].className += " current-right";
+                  } else {
+                      allCurrChars[currCharIndex - 1].className = "current";
+                  }
+                  setCurrCharIndex(currCharIndex - 1);
+              } else {
+                  allCurrChars[currCharIndex].className = "";
+                  allCurrChars[currCharIndex - 1].className = "current";
+                  setCurrCharIndex(currCharIndex - 1);
+              }
+          }
+          return;
+      }
+  
+      // Only allow alphabetic characters
+      if (isAlphabet) {
+          if (currCharIndex === allCurrChars.length) {
+              let newSpan = document.createElement("span");
+              newSpan.innerText = e.key;
+              newSpan.className = "incorrect extra current-right";
+              allCurrChars[currCharIndex - 1].classList.remove("current-right");
+              wordsSpanRef[currWordIndex].current.append(newSpan);
+              setCurrCharIndex(currCharIndex + 1);
+              setExtraChars(extraChars + 1);
+              return;
+          }
+  
+          if (e.key === allCurrChars[currCharIndex].innerText) {
+              allCurrChars[currCharIndex].className = "correct";
+              setCorrectChars(correctChars + 1);
+          } else {
+              allCurrChars[currCharIndex].className = "incorrect";
+              setIncorrectChars(incorrectChars + 1);
+          }
+  
+          if (currCharIndex + 1 === allCurrChars.length) {
+              allCurrChars[currCharIndex].className += " current-right";
+          } else {
+              allCurrChars[currCharIndex + 1].className = "current";
+          }
+  
           setCurrCharIndex(currCharIndex + 1);
-          setExtraChars(extraChars + 1);
-          return;
-        }
-    
-        if (e.key === allCurrChars[currCharIndex].innerText) {
-          console.log("input correct");
-          allCurrChars[currCharIndex].className = "correct";
-          setCorrectChars(correctChars + 1);
-        } else {
-          console.log("incorrect input");
-          allCurrChars[currCharIndex].className = "incorrect";
-          setIncorrectChars(incorrectChars + 1);
-        }
-    
-        if (currCharIndex + 1 === allCurrChars.length) {
-          allCurrChars[currCharIndex].className += " current-right";
-        } else {
-          allCurrChars[currCharIndex + 1].className = "current";
-        }
-    
-        setCurrCharIndex(currCharIndex + 1);
-      };
-    
-    
-      const calculateWPM = () => {
-        return Math.round(correctChars / 5 / (testTime / 60));
-      };
-      
-    
-      const calculateAcc = () => {
-        return Math.round((correctWords / currWordIndex) * 100);
-      };
-    
+          // Scroll to keep the cursor in view
+          scrollToCurrent();
+      }
+  };
+  
+  
+  // Scroll to the current character
+  const scrollToCurrent = () => {
+      const currentElement = wordsSpanRef[currWordIndex]?.current.childNodes[currCharIndex];
+      if (currentElement) {
+          const parentBox = document.querySelector('.type-box');
+          if (currentElement.offsetTop < parentBox.scrollTop || 
+              currentElement.offsetTop + currentElement.offsetHeight > parentBox.scrollTop + parentBox.clientHeight) {
+              currentElement.scrollIntoView({ behavior: "auto", block: "nearest" });
+          }
+      }
+  };
+  
+  
 
-    function focusInput() { 
+    const calculateWPM = () => {
+        return Math.round(correctChars / 5 / (testTime / 60));
+    };
+
+    const calculateAcc = () => {
+        return Math.round((correctWords / currWordIndex) * 100);
+    };
+
+    const focusInput = () => { 
         inputRef.current.focus();
-    }
+    };
 
     useEffect(() => {
-        resetTest()
+        resetTest();
     }, [testTime]);
 
     useEffect(() => {
@@ -200,34 +218,72 @@ function TypingBox() {
         wordsSpanRef[0].current.childNodes[0].className = "current";
     }, []);
 
+    // Handle keydown for replay button focus and game start
+    const handleKeyDown = (e) => {
+      // Prevent default tabbing behavior
+      if (e.key === "Tab") {
+          e.preventDefault(); 
+          if (replayButtonRef.current) {
+              replayButtonRef.current.focus(); // Focus the replay button
+          }
+      }
+      
+      // Only reset the test if Enter is pressed and the test has ended
+      if (e.key === "Enter" && testEnd) {
+        resetTest(); // Reset the game if the test has ended
+    }
+  };
+
     return (
-        <div>
+        <div onKeyDown={handleKeyDown}>
             <UpperMenu countDown={countDown} />
             {testEnd ? (
-                <Stats wpm={calculateWPM()} accuracy={calculateAcc()} correctChars={correctChars} incorrectChars = {incorrectChars} missedChars={missedChars} extraChars={extraChars}
-                graphData={graphData}/>
+                <Stats
+                    wpm={calculateWPM()}
+                    accuracy={calculateAcc()}
+                    correctChars={correctChars}
+                    incorrectChars={incorrectChars}
+                    missedChars={missedChars}
+                    extraChars={extraChars}
+                    graphData={graphData}
+                />
             ) : (
                 <div className="type-box" onClick={focusInput}>
                     <div className='words'>
-                    {wordsArray.map((word, index) => (
-    <span className='word' ref={wordsSpanRef[index]} key={index} data-word-length={word.length}>
-        {word.split('').map((char, charIndex) => (
-            <span key={charIndex}>{char}</span>
-        ))}
-    </span>
-))}
-
+                        {wordsArray.map((word, index) => (
+                            <span className='word' ref={wordsSpanRef[index]} key={index} data-word-length={word.length}>
+                                {word.split('').map((char, charIndex) => (
+                                    <span key={charIndex}>{char}</span>
+                                ))}
+                            </span>
+                        ))}
                     </div>
                 </div>
             )}
+       <div className="replay-container">
+    <Replay
+        ref={replayButtonRef}
+        onClick={resetTest}
+        onKeyDown={(e) => {
+            if (e.key === "Enter") {
+                resetTest();
+            }
+        }}
+        style={{ color: "inherit", cursor: "pointer", fontSize: "2rem" }} // Increase the font size
+        tabIndex={0}
+        aria-label="Replay"
+    />
+</div>
+
             <input
                 type='text'
                 onKeyDown={handleUserInput}
                 className='hidden-input'
                 ref={inputRef}
+                aria-label="Typing input"
             />
         </div>
     );
 }
 
-export default TypingBox
+export default TypingBox;

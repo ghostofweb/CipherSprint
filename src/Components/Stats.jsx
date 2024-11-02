@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Graph from './Graph';
 import { addDoc, collection } from 'firebase/firestore';
-import { firestore } from '../firebaseConfig'; // Firestore instance
-import { getAuth } from 'firebase/auth'; // Firebase Auth
+import { firestore } from '../firebaseConfig';
+import { getAuth } from 'firebase/auth';
 import { Bounce, toast } from 'react-toastify';
 
 function Stats({
@@ -17,11 +17,11 @@ function Stats({
     const auth = getAuth();
     const currentUser = auth.currentUser;
 
-    // Ensure values are valid numbers
-    const safeWpm = isNaN(wpm) ? 0 : wpm; // Default to 0 if NaN
-    const safeAccuracy = isNaN(accuracy) ? 0 : accuracy; // Default to 0 if NaN
+    const safeWpm = isNaN(wpm) ? 0 : wpm;
+    const safeAccuracy = isNaN(accuracy) ? 0 : accuracy;
 
-    // Filter graphData for unique time entries
+    const [hasSaved, setHasSaved] = useState(false); // Track if data has been saved
+
     let timeSet = new Set();
     const newGraph = graphData.filter(i => {
         if (!timeSet.has(i[0])) {
@@ -31,7 +31,6 @@ function Stats({
         return null;
     });
 
-    // Save data to Firestore in the "results" collection
     const pushDatatoDb = async () => {
         if (isNaN(safeAccuracy)) {
             toast.warning('Invalid test', {
@@ -42,10 +41,10 @@ function Stats({
             });
             return;
         }
-        if (currentUser) {
+        if (currentUser && !hasSaved) { // Only save if not already saved
             try {
                 await addDoc(collection(firestore, 'results'), {
-                    userId: currentUser.uid, // Link result to the logged-in user
+                    userId: currentUser.uid,
                     wpm: safeWpm,
                     accuracy: safeAccuracy,
                     timeStamp: new Date(),
@@ -57,6 +56,7 @@ function Stats({
                     theme: 'dark',
                     transition: Bounce,
                 });
+                setHasSaved(true); // Prevent further saves
             } catch (error) {
                 console.log(error);
                 toast.error("Couldn't save the data", {
@@ -66,7 +66,7 @@ function Stats({
                     transition: Bounce,
                 });
             }
-        } else {
+        } else if (!currentUser) {
             toast.warning('Please log in first', {
                 position: 'top-right',
                 autoClose: 5000,
@@ -77,17 +77,11 @@ function Stats({
     };
 
     useEffect(() => {
-        if (safeWpm && safeAccuracy && currentUser) { // Only save if there are valid stats and a logged-in user
-            pushDatatoDb();
-        } else if (!currentUser) {
-            toast.error('Please log in', {
-                position: 'top-right',
-                autoClose: 5000,
-                theme: 'dark',
-                transition: Bounce,
-            });
+        if (safeWpm && safeAccuracy && currentUser && !hasSaved) {
+            pushDatatoDb(); // Save only if this is the first save
         }
-    }, [safeWpm, safeAccuracy, currentUser]); // Depend on stats and user status
+    }, [safeWpm, safeAccuracy, currentUser, hasSaved]); 
+    
 
     return (
         <div className="stats-box">

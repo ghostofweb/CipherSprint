@@ -32,30 +32,42 @@ body {
 }
 
 .type-box {
-  display: block;
-  max-width: 2000px;
-  height: 240px;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
-  transition: opacity 0.5s ease;
+    display: block;
+    max-width: 2000px;
+    height: 240px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: scroll; /* Use scroll to maintain scroll functionality */
+    scrollbar-width: none; /* For Firefox */
+    -ms-overflow-style: none; /* For Internet Explorer and Edge */
+    transition: opacity 0.5s ease; /* Smooth transition for opacity */
 }
+
+.type-box::-webkit-scrollbar {
+    display: none; 
+}
+
+
 
 .type-box.resetting {
     opacity: 0;
 }
 
 .words {
-  font-size: 38px;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  color: ${({ theme }) => theme.typeBoxColor}; // Consistent type color
+    font-size: 38px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    color: ${({ theme }) => theme.wordColor}; 
+    transition: transform 0.3s ease; 
 }
 
 .word {
   margin: 5px;
   padding-right: 2px;
+}
+.untyped {
+    opacity: 0.5; /* Example styling for untyped words */
 }
 
 .hidden-input {
@@ -63,20 +75,19 @@ body {
 }
 
 .correct {
-  color: green;
+  color: ${({ theme }) => theme.correctWordColor}; 
 }
 
 .incorrect {
-  color: red;
+  color: ${({ theme }) => theme.incorrectWordColor}; 
 }
-
 .extra {
   color: #6d3e3e; // Can also be themed if needed
 }
-
 .current {
-    border-left: 1px solid ${({ theme }) => theme.textColor}; // Dynamic border color
+    border-left: 1px solid ${({ theme }) => theme.textColor};
     animation: blinkingLeft 1s infinite;
+    transition: border-color 0.3s; /* Smooth transition for cursor color */
 }
 
 @keyframes blinkingLeft {
@@ -88,7 +99,7 @@ body {
 }
 
 .current-right {
-    border-right: 1px solid ${({ theme }) => theme.textColor}; // Dynamic border color
+  border-right: 1px solid ${({ theme }) => theme.textColor}; // Dynamic border color
     animation: blinkingRight 1s infinite;
 }
 
@@ -118,6 +129,34 @@ body {
   color: green;
   cursor: pointer;
 }
+
+.replay-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.replay-container .MuiSvgIcon-root {
+    font-size: 2rem; /* Adjust the size of the replay icon */
+}
+.type-box.resetting {
+    opacity: 0;
+    transition: opacity 0.5s ease; /* Smooth transition for opacity */
+}
+
+.results {
+    opacity: 0;
+    transition: opacity 0.5s ease; /* Smooth transition for opacity */
+}
+
+.results.fade-in {
+    opacity: 1;
+}
+
+.results.fade-out {
+    opacity: 0;
+}
+
 
 .footer {
   display: flex;
@@ -211,5 +250,63 @@ body {
   justify-content: space-between;
   margin-left:auto;
   margin-right: auto;
+}
+
+.user-profile {
+  display: flex;
+  justify-content: space-between; /* Space between user info and total results */
+  align-items: center;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+}
+
+.picture {
+  margin-right: 15px;
+}
+
+.email {
+  font-size: 1.5rem; /* Increased size for email */
+  font-weight: bold;
+  color: inherit; /* Inherit color from the parent */
+}
+
+.joined-at {
+  font-size: 0.9rem;
+  color: gray; /* You can modify based on theme */
+}
+
+.total-results {
+  font-size: 1.2rem; /* Size similar to 'Total Test Taken' */
+  font-weight: bold;
+  color: inherit; /* Inherit color from the parent */
+}
+.user-profile{
+  background: black;
+}
+
+.logo g{
+  fill: ${({ theme }) => theme.textColor}
+}
+.logo path{
+  stroke: ${({ theme }) => theme.textColor};
+  stroke-width: 10px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logo {
+  width: 40px; /* Set the desired width */
+  height: 40px; /* Set the desired height */
 }
 `;

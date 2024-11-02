@@ -1,17 +1,15 @@
-// SignupForm.js
 import React, { useState } from 'react';
 import { Button, TextField, Box, IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { auth, firestore } from '../firebaseConfig'; // Import Firestore
+import { auth, firestore } from '../firebaseConfig'; 
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { useTheme } from '../Context/ThemeContext';
 import { Bounce, toast } from 'react-toastify';
 import { doc, setDoc } from 'firebase/firestore';
 
-// Helper function to validate username
 const validateUsername = (username) => /^[a-zA-Z0-9_]+$/.test(username);
 
-export const SignupForm = () => {
+export const SignupForm = ({ onSuccess }) => { // Accept onSuccess as prop
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -96,17 +94,15 @@ export const SignupForm = () => {
         });
         return;
       }
-
-      // Create user with email and password
+    
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Save username to Firestore under users collection
+    
       await setDoc(doc(firestore, "users", user.uid), {
         username: username,
         email: email,
       });
-
+    
       toast.success('User created successfully', {
         position: "top-right",
         autoClose: 5000,
@@ -118,9 +114,9 @@ export const SignupForm = () => {
         theme: "dark",
         transition: Bounce,
       });
-    } catch (err) {
-      console.log(err)
-      toast.error('Something went wrong: ' + err.message, {
+      onSuccess(); // Call onSuccess to close modal
+    } catch (error) {
+      toast.error(`Error: ${error.message}`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -132,98 +128,74 @@ export const SignupForm = () => {
         transition: Bounce,
       });
     }
-   
-};
-
-  const handleKeyDown = (e)=>{
-    if(e.key === "Enter"){
-        handleSubmit();
-    }
-}
+  };
 
   return (
-    <Box component="form" noValidate autoComplete="off"  sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        padding: 2,
-        backgroundColor: theme.background,
-        color: theme.textColor,
-        borderRadius: 1,
-        height: '100%', // Ensure the Box has height
-    }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px' }}>
       <TextField
-        onKeyDown={handleKeyDown}
-        required
-        label="Email"
-        type="email"
-        fullWidth
-        margin="normal"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)
-        }
-        InputProps={{
-            style: { color: theme.textColor },
-          }}
-          InputLabelProps={{
-            style: { color: theme.textColor },
-          }}/>
-      <TextField
-        onKeyDown={handleKeyDown}
-        required
         label="Username"
-        fullWidth
-        margin="normal"
+        variant="outlined"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        InputProps={{
-            style: { color: theme.textColor },
-          }}
-          InputLabelProps={{
-            style: { color: theme.textColor },
-          }}/>
-      <TextField
-        onKeyDown={handleKeyDown}
         required
+        inputProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+        InputLabelProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} // Optional: round the corners
+      />
+      <TextField
+        label="Email"
+        variant="outlined"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        inputProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+        InputLabelProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+      />
+      <TextField
         label="Password"
         type={showPassword ? 'text' : 'password'}
-        fullWidth
-        margin="normal"
+        variant="outlined"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-          InputLabelProps={{
-            style: { color: theme.textColor },
-          }}
+        required
+        inputProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+        InputLabelProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
         InputProps={{
-            style: { color: theme.textColor},
           endAdornment: (
-            <InputAdornment position="end" >
+            <InputAdornment position="end">
               <IconButton onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <VisibilityOff sx={{ color: theme.textColor }}/> : <Visibility sx={{ color: theme.textColor }}/>}
+                {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </InputAdornment>
           ),
         }}
       />
       <TextField
-        onKeyDown={handleKeyDown}
-        required
         label="Confirm Password"
         type={showPassword ? 'text' : 'password'}
-        fullWidth
-        margin="normal"
+        variant="outlined"
         value={confirmPassword}
         onChange={(e) => setConfirmPassword(e.target.value)}
-        InputProps={{
-            style: { color: theme.textColor },
-          }}
-          InputLabelProps={{
-            style: { color: theme.textColor },
-          }}/>
-      <Button variant="contained" color="primary" onClick={handleSubmit} sx={{display:"flex", alignContent:"center" , background:theme.background}}>
+        required
+        inputProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+        InputLabelProps={{ style: { color: theme.textColor, fontSize: '1.2rem' } }} // Increased font size
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSubmit}
+        sx={{
+          background: theme.background,
+          color: theme.textColor,
+          fontSize: '1.2rem', // Increased button font size
+          padding: '10px 20px', // Increased padding for a larger button
+        }}
+      >
         Sign Up
       </Button>
     </Box>
   );
+  
 };
 
 export default SignupForm;

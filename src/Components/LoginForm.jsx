@@ -88,81 +88,87 @@ const LoginForm = () => {
 
   return (
     <Box
-        onKeyDown={handleKeyDown}
-        sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            padding: 2,
-            backgroundColor: theme.background,
-            color: theme.textColor,
-            borderRadius: 1,
-            height: '100%', // Ensure the Box has height
-        }}
+      onKeyDown={handleKeyDown}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        padding: 2,
+        backgroundColor: theme.background,
+        color: theme.textColor,
+        borderRadius: 1,
+        height: '100%',
+      }}
     >
-        <TextField
-            label="Email"
-            variant="outlined"
-            fullWidth
-            type="email"
-            InputProps={{
-                style: { color: theme.textColor },
-            }}
-            InputLabelProps={{
-                style: { color: theme.textColor },
-            }}
-            sx={{
-                '& .MuiOutlinedInput-root .MuiInputBase-input::placeholder': {
-                    color: theme.background,
-                },
-            }}
-            onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            variant="outlined"
-            fullWidth
-            onChange={(e) => setPassword(e.target.value)}
-            InputProps={{
-                style: { color: theme.textColor },
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton
-                            onMouseDown={handleMouseDownPassword}
-                            onMouseUp={handleMouseUpPassword}
-                            edge="end"
-                            aria-label="toggle password visibility"
-                        >
-                            {showPassword ? (
-                                <Visibility sx={{ color: theme.textColor }} />
-                            ) : (
-                                <VisibilityOff sx={{ color: theme.textColor }} />
-                            )}
-                        </IconButton>
-                    </InputAdornment>
-                ),
-            }}
-            InputLabelProps={{
-                style: { color: theme.textColor },
-            }}
-            sx={{
-                '& .MuiOutlinedInput-root .MuiInputBase-input::placeholder': {
-                    color: theme.background,
-                },
-            }}
-        />
-        <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleSubmit}
-            sx={{ background: theme.background, color: theme.textColor }}
-        >
-            Login
-        </Button>
+      <TextField
+        label="Email"
+        variant="outlined"
+        fullWidth
+        type="email"
+        InputProps={{
+          style: { color: theme.textColor, fontSize: '1.2rem' }, // Increased font size
+        }}
+        InputLabelProps={{
+          style: { color: theme.textColor, fontSize: '1.2rem' }, // Increased font size
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root .MuiInputBase-input::placeholder': {
+            color: theme.background,
+          },
+        }}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <TextField
+        label="Password"
+        type={showPassword ? 'text' : 'password'}
+        variant="outlined"
+        fullWidth
+        onChange={(e) => setPassword(e.target.value)}
+        InputProps={{
+          style: { color: theme.textColor, fontSize: '1.2rem' }, // Increased font size
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onMouseDown={handleMouseDownPassword}
+                onMouseUp={handleMouseUpPassword}
+                edge="end"
+                aria-label="toggle password visibility"
+              >
+                {showPassword ? (
+                  <Visibility sx={{ color: theme.textColor }} />
+                ) : (
+                  <VisibilityOff sx={{ color: theme.textColor }} />
+                )}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        InputLabelProps={{
+          style: { color: theme.textColor, fontSize: '1.2rem' }, // Increased font size
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root .MuiInputBase-input::placeholder': {
+            color: theme.background,
+          },
+        }}
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        size="large"
+        onClick={handleSubmit}
+        sx={{
+          background: theme.background,
+          color: theme.textColor,
+          fontSize: '1.2rem', // Increased button font size
+          padding: '10px 20px', // Increased padding for a larger button
+        }}
+      >
+        Login
+      </Button>
     </Box>
   );
+  
 };
 
 export default LoginForm;

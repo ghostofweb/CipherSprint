@@ -1,0 +1,45 @@
+{
+    "username": "ruab",
+    "results": [
+      {
+        "userId": "ZegXSBZ9EtWGn3SYeeuL5UJ4xhi2",
+        "wpm": 43,
+        "accuracy": 64,
+        "timeStamp": {
+          "seconds": 1730563203,
+          "nanoseconds": 803000000
+        },
+        "characters": "54/13/NaN/0"
+      },
+      {
+        "accuracy": 100,
+        "characters": "64/4/0/0",
+        "timeStamp": {
+          "seconds": 1730562945,
+          "nanoseconds": 113000000
+        },
+        "userId": "ZegXSBZ9EtWGn3SYeeuL5UJ4xhi2",
+        "wpm": 51
+      },
+      {
+        "userId": "ZegXSBZ9EtWGn3SYeeuL5UJ4xhi2",
+        "wpm": 43,
+        "accuracy": 64,
+        "timeStamp": {
+          "seconds": 1730563203,
+          "nanoseconds": 797000000
+        },
+        "characters": "54/13/NaN/0"
+      },
+      {
+        "timeStamp": {
+          "seconds": 1730562945,
+          "nanoseconds": 121000000
+        },
+        "characters": "64/4/0/0",
+        "accuracy": 100,
+        "userId": "ZegXSBZ9EtWGn3SYeeuL5UJ4xhi2",
+        "wpm": 51
+      }
+    ]
+  }
