@@ -274,7 +274,7 @@ function TypingBox() {
                     graphData={graphData}
                 />
             ) : (
-                <div className={`type-box ${(!isInputFocused && !isReplayFocused) ? 'blurred' : ''}`} onClick={focusInput}>
+                <div className={`type-box`} onClick={focusInput}>
                     <div className='words'>
                         {wordsArray.map((word, index) => (
                             <span className='word' ref={wordsSpanRef[index]} key={index} data-word-length={word.length}>
@@ -284,9 +284,6 @@ function TypingBox() {
                             </span>
                         ))}
                     </div>
-                    {(!isInputFocused && !isReplayFocused) && (
-                        <div className="prompt">Click here to start typing</div>
-                    )}
                 </div>
             )}
             <div className="replay-container">
@@ -304,6 +301,7 @@ function TypingBox() {
                     tabIndex={0}
                     aria-label="Replay"
                 />
+                 <div style={{padding:"7px 10px"}}> Press <span style={{background:"grey", padding:"4px" ,borderRadius:"5px"}}>Tab</span> + <span style={{background:"grey", padding:"4px" ,borderRadius:"5px"}}>Enter</span> To Restart </div> 
             </div>
             <input
                 type='text'
