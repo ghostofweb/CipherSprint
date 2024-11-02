@@ -204,4 +204,12 @@ body {
 .subtitle{
   font-size: 30px;
 }
+
+.header{
+  width: 1500px;
+  display: flex;
+  justify-content: space-between;
+  margin-left:auto;
+  margin-right: auto;
+}
 `;

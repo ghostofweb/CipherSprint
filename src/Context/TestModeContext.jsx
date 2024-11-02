@@ -3,7 +3,7 @@ import {createContext, useState,useContext } from "react"
 const testModeContext = createContext()
 
 export const TestModeContextProvider = ({children})=>{
-    const [testTime,setTestTime] = useState(2);
+    const [testTime,setTestTime] = useState(15);
 
     const values = {
         testTime,

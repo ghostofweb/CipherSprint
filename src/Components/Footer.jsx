@@ -22,7 +22,7 @@ function Footer() {
           <img src="/github.svg" alt="GitHub" className="footer-icon" />
           GitHub
         </a>
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+        <a href="https://linkedin.com/in/sahiljeet-singh-kalsi-085844244/" target="_blank" rel="noopener noreferrer">
           <img src="/linkedin.svg" alt="LinkedIn" className="footer-icon" />
         </a>
         <Select
