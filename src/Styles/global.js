@@ -8,39 +8,51 @@ export const GlobalStyles = createGlobalStyle`
 }
 
 body {
-  background: ${({ theme }) => theme.background};
-  color: ${({ theme }) => theme.textColor};
-  margin: 0;
-  padding: 0;
-  transition: all 0.3s linear;
-  font-family: "Roboto Mono", monospace;
-  font-style: normal;
+    background: ${({ theme }) => theme.background};
+    color: ${({ theme }) => theme.textColor};
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s linear;
+    font-family: "Roboto Mono", monospace;
 }
 
 .canvas {
-  display: grid;
-  min-height: 100vh;
-  grid-auto-flow: row;
-  grid-template-rows: auto 1fr auto;
-  gap: 0.5rem;
-  padding: 2rem;
-  width: 80vw; /* Set to 70% of viewport width */
-  max-width: 2000px; /* Optional max width */
-  text-align: center;
-  align-items: center;
-  margin: 0 auto; /* Center the canvas horizontally */
+    display: grid;
+    min-height: 100vh;
+    grid-auto-flow: row;
+    grid-template-rows: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 2rem;
+    width: 80vw; /* Set to 80% of viewport width */
+    max-width: 2000px; /* Optional max width */
+    text-align: center;
+    align-items: center;
+    margin: 0 auto; /* Center the canvas horizontally */
 }
 
 .type-box {
     display: block;
     max-width: 2000px;
-    height: 240px;
-    margin-left: auto;
-    margin-right: auto;
-    overflow-y: scroll; /* Use scroll to maintain scroll functionality */
-    scrollbar-width: none; /* For Firefox */
-    -ms-overflow-style: none; /* For Internet Explorer and Edge */
-    transition: opacity 0.5s ease; /* Smooth transition for opacity */
+    height: 269px;
+    margin: 0 auto;
+    overflow-y: scroll;
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+    transition: opacity 0.5s ease; 
+}
+.words.blurred {
+    filter: blur(4px);
+}
+
+.prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: gray;
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.3s ease; /* Smooth transition for prompt visibility */
 }
 
 .type-box::-webkit-scrollbar {
@@ -48,30 +60,55 @@ body {
 }
 
 
+.type-box.blurred {
+    filter: blur(4px);
+}
+
 
 .type-box.resetting {
     opacity: 0;
 }
 
 .words {
+    gap: 10px;
     font-size: 38px;
     display: flex;
     flex-wrap: wrap;
     align-content: center;
     color: ${({ theme }) => theme.wordColor}; 
-    transition: transform 0.3s ease; 
+    transition: transform 0.3s ease, filter 0.3s ease; /* Add filter transition */
 }
 
+.words.blurred {
+    filter: blur(4px);
+}
+
+.prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: gray;
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: opacity 0.3s ease; /* Smooth transition for prompt visibility */
+}
 .word {
-  margin: 5px;
-  padding-right: 2px;
+    margin: 5px;
+    padding-right: 2px;
+    white-space: nowrap; 
 }
 .untyped {
-    opacity: 0.5; /* Example styling for untyped words */
+    opacity: 0.5;
+    text-decoration: line-through;
 }
 
 .hidden-input {
   opacity: 0;
+}
+.un-types {
+    color: gray; 
+    text-decoration: line-through;
 }
 
 .correct {
@@ -85,6 +122,7 @@ body {
   color: #6d3e3e; // Can also be themed if needed
 }
 .current {
+  
     border-left: 1px solid ${({ theme }) => theme.textColor};
     animation: blinkingLeft 1s infinite;
     transition: border-color 0.3s; /* Smooth transition for cursor color */

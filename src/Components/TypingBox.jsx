@@ -4,6 +4,7 @@ import React, { createRef, useEffect, useMemo, useRef, useState } from 'react';
 import { useTestMode } from "../Context/TestModeContext.jsx";
 import Stats from "./Stats.jsx";
 import { Replay } from "@mui/icons-material";
+
 function TypingBox() {
     const inputRef = useRef(null);
     const replayButtonRef = useRef(null);
@@ -22,6 +23,10 @@ function TypingBox() {
     const [extraChars, setExtraChars] = useState(0);
     const [correctWords, setCorrectWords] = useState(0);
     const [graphData, setGraphData] = useState([]);
+    
+    // State to track focus
+    const [isInputFocused, setIsInputFocused] = useState(true);
+    const [isReplayFocused, setIsReplayFocused] = useState(false); // New state
 
     const wordsSpanRef = useMemo(() => {
         return Array(wordsArray.length).fill(0).map(() => createRef(null));
@@ -76,58 +81,62 @@ function TypingBox() {
         });
         wordsSpanRef[0]?.current?.childNodes[0]?.classList.add("current");
     };
-
   
 
     const handleUserInput = (e) => {
       if (!wordsSpanRef[currWordIndex]?.current) {
-          return;
-      }
-  
-      const allCurrChars = wordsSpanRef[currWordIndex].current.childNodes;
-  
-      // Prevent timer from starting on non-input keys
-      const isAlphabet = /^[A-Za-z]$/.test(e.key);
-  
-      // Start timer only when valid input is detected
-      if (!testStart && isAlphabet) {
-          startTimer();
-          setTestStart(true);
-      }
-  
-      // Handle space key
-      if (e.keyCode === 32) {
-          let correctCharsInWord = wordsSpanRef[currWordIndex].current.querySelectorAll(".correct");
-          if (correctCharsInWord.length === allCurrChars.length) {
-              setCorrectWords(correctWords + 1);
-          }
-  
-          if (allCurrChars.length <= currCharIndex) {
-              allCurrChars[currCharIndex - 1].classList.remove("current-right");
-          } else {
-              allCurrChars[currCharIndex].classList.remove("current");
-              setMissedChars(missedChars + (allCurrChars.length - currCharIndex));
-          }
-  
-          // Move to the next word
-          const nextWordIndex = currWordIndex + 1;
-          if (nextWordIndex < wordsSpanRef.length) {
-              if (wordsSpanRef[nextWordIndex] && wordsSpanRef[nextWordIndex].current) {
-                  wordsSpanRef[nextWordIndex].current.childNodes[0].className = "current";
-              }
-          } else {
-              // If the last word is reached, end the test
-              setTestEnd(true);
-              clearInterval(intervalId); // Stop the timer if necessary
-              return; // Exit the function
-          }
-  
-          setCurrWordIndex(nextWordIndex);
-          setCurrCharIndex(0);
-          // Scroll to keep the current word in view
-          scrollToCurrent();
-          return;
-      }
+        return;
+    }
+
+    const allCurrChars = wordsSpanRef[currWordIndex].current.childNodes;
+    const isAlphabet = /^[A-Za-z]$/.test(e.key);
+    const isSpace = e.keyCode === 32; 
+
+    if (!testStart && (isAlphabet||isSpace)) {
+        startTimer();
+        setTestStart(true);
+    }
+
+    // Handle space key
+    if (e.keyCode === 32) {
+        let correctCharsInWord = wordsSpanRef[currWordIndex].current.querySelectorAll(".correct");
+        if (correctCharsInWord.length === allCurrChars.length) {
+            setCorrectWords(correctWords + 1);
+        }
+
+        // If space is pressed at the start or in between, mark remaining characters as untyped
+        if (currCharIndex === 0 || currCharIndex < allCurrChars.length) {
+            for (let i = currCharIndex; i < allCurrChars.length; i++) {
+                allCurrChars[i].classList.add("un-types");
+            }
+        }
+
+        if (allCurrChars.length <= currCharIndex) {
+            allCurrChars[currCharIndex - 1].classList.remove("current-right");
+        } else {
+            allCurrChars[currCharIndex].classList.remove("current");
+            setMissedChars(missedChars + (allCurrChars.length - currCharIndex));
+        }
+
+        // Move to the next word
+        const nextWordIndex = currWordIndex + 1;
+        if (nextWordIndex < wordsSpanRef.length) {
+            if (wordsSpanRef[nextWordIndex] && wordsSpanRef[nextWordIndex].current) {
+                wordsSpanRef[nextWordIndex].current.childNodes[0].className = "current";
+            }
+        } else {
+            // If the last word is reached, end the test
+            setTestEnd(true);
+            clearInterval(intervalId); // Stop the timer if necessary
+            return; // Exit the function
+        }
+
+        setCurrWordIndex(nextWordIndex);
+        setCurrCharIndex(0);
+        // Scroll to keep the current word in view
+        scrollToCurrent();
+        return;
+    }
   
       // Allow backspace
       if (e.keyCode === 8) {
@@ -196,6 +205,9 @@ function TypingBox() {
   };
   
   
+  const focusInput = () => {
+    inputRef.current.focus();
+};
 
     const calculateWPM = () => {
         return Math.round(correctChars / 5 / (testTime / 60));
@@ -205,14 +217,27 @@ function TypingBox() {
         return Math.round((correctWords / currWordIndex) * 100);
     };
 
-    const focusInput = () => { 
-        inputRef.current.focus();
-    };
+
 
     useEffect(() => {
         resetTest();
     }, [testTime]);
 
+    const handleFocus = () => {
+      setIsInputFocused(true);
+  };
+
+  const handleBlur = () => {
+      setIsInputFocused(false);
+  };
+
+  const handleReplayFocus = () => {
+      setIsReplayFocused(true);
+  };
+
+  const handleReplayBlur = () => {
+      setIsReplayFocused(false);
+  };
     useEffect(() => {
         focusInput();
         wordsSpanRef[0].current.childNodes[0].className = "current";
@@ -234,6 +259,7 @@ function TypingBox() {
     }
   };
 
+     
     return (
         <div onKeyDown={handleKeyDown}>
             <UpperMenu countDown={countDown} />
@@ -248,7 +274,7 @@ function TypingBox() {
                     graphData={graphData}
                 />
             ) : (
-                <div className="type-box" onClick={focusInput}>
+                <div className={`type-box ${(!isInputFocused && !isReplayFocused) ? 'blurred' : ''}`} onClick={focusInput}>
                     <div className='words'>
                         {wordsArray.map((word, index) => (
                             <span className='word' ref={wordsSpanRef[index]} key={index} data-word-length={word.length}>
@@ -258,29 +284,35 @@ function TypingBox() {
                             </span>
                         ))}
                     </div>
+                    {(!isInputFocused && !isReplayFocused) && (
+                        <div className="prompt">Click here to start typing</div>
+                    )}
                 </div>
             )}
-       <div className="replay-container">
-    <Replay
-        ref={replayButtonRef}
-        onClick={resetTest}
-        onKeyDown={(e) => {
-            if (e.key === "Enter") {
-                resetTest();
-            }
-        }}
-        style={{ color: "inherit", cursor: "pointer", fontSize: "2rem" }} // Increase the font size
-        tabIndex={0}
-        aria-label="Replay"
-    />
-</div>
-
+            <div className="replay-container">
+                <Replay
+                    ref={replayButtonRef}
+                    onClick={resetTest}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            resetTest();
+                        }
+                    }}
+                    onFocus={handleReplayFocus} // Set focus handler
+                    onBlur={handleReplayBlur} // Set blur handler
+                    style={{ color: "inherit", cursor: "pointer", fontSize: "2rem" }}
+                    tabIndex={0}
+                    aria-label="Replay"
+                />
+            </div>
             <input
                 type='text'
                 onKeyDown={handleUserInput}
                 className='hidden-input'
                 ref={inputRef}
                 aria-label="Typing input"
+                onFocus={handleFocus}
+                onBlur={handleBlur}
             />
         </div>
     );
