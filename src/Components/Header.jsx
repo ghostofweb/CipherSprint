@@ -19,7 +19,7 @@ function Header() {
         onClick={handleLogoClick}
       >
         <Logo className='logo' style={{width:"78px", height: "97px" }} /> {/* Adjust size here */}
-        <h1 style={{ marginLeft: '10px', color: theme.textColor, fontSize: '24px' }}>Monkeyfight</h1> {/* Adjust font size if needed */}
+        <h1 style={{ marginLeft: '10px', color: theme.textColor, fontSize: '24px' }}>CIpherSprint</h1> {/* Adjust font size if needed */}
       </div>
       <div className="user-icon">
         <AccountCircle style={{ fontSize: '2em', color: theme.textColor }} />
