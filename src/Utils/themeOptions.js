@@ -18,7 +18,7 @@ const redTheme = {
   headerBackgroundColor: '#ffb2b2', // Slightly darker light red
   correctWordColor: '#500058', // Light green for correct words
   incorrectWordColor: '#ff0000', // Bright red for incorrect words
-  wordColor: '#fce5e5', // Dark red for general words
+  wordColor: '#fce5e5', // Dark red for general wordsgg
   cursorColor:'#541616'
 };
 
