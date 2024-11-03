@@ -1,14 +1,14 @@
-// src/Header.js
+
 import React from 'react';
 import AccountCircle from './AccountCircle';
 import { useTheme } from '@emotion/react';
-import { ReactComponent as Logo } from '../assets/Logo.svg'; // Ensure the logo is imported correctly
+import { ReactComponent as Logo } from '../assets/Logo.svg'; 
 
 function Header() {
   const theme = useTheme();
   
   const handleLogoClick = () => {
-    window.location.reload(); // Refresh the entire website
+    window.location.reload(); 
   };
 
   return (

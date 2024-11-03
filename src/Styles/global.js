@@ -23,8 +23,8 @@ body {
     grid-template-rows: auto 1fr auto;
     gap: 1rem;
     padding: 1.5rem;
-    width: 95vw; /* Reduced from 100vw for better responsiveness */
-    max-width: 1400px; /* Adjusted to fit well on larger screens */
+    width: 95vw;
+    max-width: 90%;
     text-align: center;
     align-items: center;
     margin: 0 auto;
@@ -34,7 +34,7 @@ body {
     display: block;
     width: 100%;
     max-width: 95%;
-    height: 250px;
+    height: 30vh;
     margin: 0 auto;
     overflow-y: scroll;
     scrollbar-width: none; 
@@ -47,7 +47,7 @@ body {
 
 .words {
     gap: 10px;
-    font-size: 1.8rem; /* Adjusted for better scaling */
+    font-size: 1.8rem;
     display: flex;
     flex-wrap: wrap;
     align-content: center;
@@ -112,7 +112,7 @@ body {
   display: flex;
   width: 100%;
   justify-content: space-between;
-  font-size: 1.5rem; /* Adjusted for flexibility */
+  font-size: 1.5rem; 
   padding: 0.5rem;
   color: ${({ theme }) => theme.textColor};
 }
@@ -151,7 +151,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  width: 90vw; /* Reduced width for better centering */
+  width: 90vw; 
   max-width: 1400px;
   margin: 0 auto;
   color: ${({ theme }) => theme.textColor};
@@ -195,16 +195,16 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex: 1; /* Allows both sections to take equal width */
-  min-height: 200px; /* Set a minimum height for both sections */
+  flex: 1;
+  min-height: 200px; 
 }
 
 .left-stats {
-  width: 50%; /* Set width to 50% */
+  width: 50%; 
 }
 
 .right-stats {
-  width: 50%; /* Set width to 50% */
+  width: 50%; 
 }
 
 .title {
@@ -251,9 +251,53 @@ body {
   height: 36px;
 }
 
+.logo path {
+  fill: ${({ theme }) => theme.textColor}; /* This controls the fill color */
+  stroke: ${({ theme }) => theme.textColor}; /* If you need stroke as well */
+  stroke-width: 1px; /* Set stroke-width if needed */
+}
+
 .logo-section {
   display: flex;
   align-items: center;
   cursor: pointer;
 }
+
+
+/* Media Queries for Responsive Design */
+@media (max-width: 1903px) {
+    .type-box {
+        height: 200px; /* Slightly reduce height on smaller screens */
+    }
+    .words {
+        font-size: 1.6rem; /* Reduce font size */
+    }
+    .upper-menu {
+        font-size: 1.3rem; /* Reduce font size */
+    }
+}
+
+@media (max-width: 1519px) {
+    .type-box {
+        height: 180px; /* Further reduce height on even smaller screens */
+    }
+    .words {
+        font-size: 1.4rem; /* Further reduce font size */
+    }
+    .upper-menu {
+        flex-direction: column; /* Stack elements vertically */
+        font-size: 1.1rem; /* Reduce font size */
+    }
+    .footer {
+        flex-direction: column; /* Stack footer elements vertically */
+        align-items: flex-start; /* Align footer items to the start */
+    }
+    .stats-box {
+        flex-direction: column; /* Stack stats vertically */
+    }
+    .left-stats, .right-stats {
+        width: 100%; /* Make stats take full width */
+    }
+}
 `;
+
