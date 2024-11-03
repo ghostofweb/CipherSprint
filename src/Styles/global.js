@@ -278,6 +278,11 @@ body {
     .upper-menu {
         font-size: 1.3rem; /* Reduce font size */
     }
+    .not-typed {
+    color: gray; /* Or any other styling you prefer */
+    text-decoration: line-through; /* Optional: to show that these characters were not typed */
+}
+
 }
 
 @media (max-width: 1519px) {
@@ -291,6 +296,12 @@ body {
         flex-direction: column; /* Stack elements vertically */
         font-size: 1.1rem; /* Reduce font size */
     }
+.not-typed {
+    color: gray; /* Or any other styling you prefer */
+    text-decoration: line-through; /* Optional: to show that these characters were not typed */
+}
+
+
     .footer {
         flex-direction: column; /* Stack footer elements vertically */
         align-items: flex-start; /* Align footer items to the start */

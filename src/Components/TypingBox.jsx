@@ -63,10 +63,18 @@ function TypingBox() {
         setTestStart(false);
         setTestEnd(false);
         setWordsArray(generate(100));
+        
+        // Reset all calculation states to 0
+        setCorrectChars(0);
+        setIncorrectChars(0);
+        setMissedChars(0);
+        setExtraChars(0);
+        setCorrectWords(0);
+        setGraphData([]); // Reset graph data as well if necessary
+    
         resetWordSpanRefClassname();
         focusInput();
     };
-
     const resetWordSpanRefClassname = () => {
         wordsSpanRef.forEach((wordRef) => {
             if (wordRef.current) {
@@ -214,7 +222,8 @@ function TypingBox() {
     };
 
     const calculateAcc = () => {
-        return Math.round((correctWords / currWordIndex) * 100);
+        const totalTypedChars = correctChars + incorrectChars + missedChars + extraChars;
+        return Math.round((correctChars / totalTypedChars) * 100);
     };
 
 
