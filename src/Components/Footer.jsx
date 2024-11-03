@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import Select from "react-select";
 import { themeOptions } from '../Utils/themeOptions';
+import { GitHubIcon, LinkedInIcon } from './SocialIcons'; // Adjust the path if needed
 import { useTheme } from '../Context/ThemeContext';
 
 function Footer() {
   const [value, setValue] = useState();
-  const { setTheme, theme } = useTheme();
+  const { theme, setTheme } = useTheme(); // Correctly destructure theme and setTheme from useTheme
 
   const handleChange = (e) => {
     setTheme(e.value);
@@ -17,17 +18,31 @@ function Footer() {
       <div className="footer-left" style={{ color: theme.textColor }}>
         © {new Date().getFullYear()} MonkeyFight
       </div>
-      <div className="footer-right">
-        <a href="https://github.com/ghostofweb" target="_blank" rel="noopener noreferrer">
-          <img src="/github.svg" alt="GitHub" className="footer-icon" />
-          GitHub
+      <div className="footer-right" style={{ display: 'flex', alignItems: 'center' }}>
+        <a 
+          href="https://github.com/ghostofweb" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          style={{ color: theme.textColor, display: 'flex', alignItems: 'center', marginRight: '10px' }}
+        >
+          <GitHubIcon fill={theme.textColor} />
+          <span style={{ marginLeft: '5px' }}>Github</span>
         </a>
-        <a href="https://linkedin.com/in/sahiljeet-singh-kalsi-085844244/" target="_blank" rel="noopener noreferrer">
-          <img src="/linkedin.svg" alt="LinkedIn" className="footer-icon" />
+        <a 
+          href="https://linkedin.com/in/sahiljeet-singh-kalsi-085844244/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          style={{ color: theme.textColor, display: 'flex', alignItems: 'center' }}
+        >
+          <LinkedInIcon fill={theme.textColor} />
+          <span style={{ marginLeft: '5px' }}>Linkedin</span>
         </a>
         <Select
           value={value}
-          onChange={handleChange}
+          onChange={(selectedOption) => {
+            setValue(selectedOption);
+            handleChange(selectedOption);
+          }}
           options={themeOptions}
           menuPlacement='top'
           styles={{
@@ -40,7 +55,7 @@ function Footer() {
               cursor: "pointer",
             }),
           }}
-          defaultValue={{ label: theme.label, value: theme }}
+          defaultValue={themeOptions.find(option => option.value === theme)} // Set the default value based on the current theme
           className="theme-select"
         />
       </div>

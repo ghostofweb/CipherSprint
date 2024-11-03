@@ -313,5 +313,10 @@ body {
         width: 100%; /* Make stats take full width */
     }
 }
+
+.icon{
+  height: 40px;
+  width: 40px;
+}
 `;
 
