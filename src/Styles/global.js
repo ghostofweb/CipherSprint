@@ -40,6 +40,7 @@ body {
     scrollbar-width: none; 
     -ms-overflow-style: none; 
     transition: opacity 0.5s ease; 
+    user-select: none;           
 }
 .type-box::-webkit-scrollbar {
     display: none;
@@ -98,13 +99,13 @@ body {
 }
 
 .current {
-    border-left: 1px solid ${({ theme }) => theme.textColor};
+    border-left: 1px solid ${({ theme }) => theme.cursorColor};
     animation: blinkingLeft 1s infinite;
     transition: border-color 0.3s;
 }
 
 @keyframes blinkingLeft {
-  0%, 100% { border-left-color: ${({ theme }) => theme.textColor}; }
+  0%, 100% { border-left-color: ${({ theme }) => theme.cursorColor}; }
   25%, 75% { border-left-color: black; }
 }
 
@@ -152,7 +153,7 @@ body {
   align-items: center;
   padding: 1rem;
   width: 90vw; 
-  max-width: 1400px;
+  max-width: 90%;
   margin: 0 auto;
   color: ${({ theme }) => theme.textColor};
 }
@@ -173,11 +174,13 @@ body {
   color: ${({ theme }) => theme.textColor};
   text-decoration: none;
   transition: color 0.3s ease;
+  
 }
 
 .footer-right a img {
   width: 24px;
   height: 24px;
+  margin-right: 8px;
 }
 
 .stats-box {
@@ -208,7 +211,7 @@ body {
 }
 
 .title {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: ${({ theme }) => theme.typeBoxColor};
 }
 

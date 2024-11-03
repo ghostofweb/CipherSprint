@@ -1,78 +1,85 @@
 const darkTheme = {
   label: 'Dark',
-  background: '#121212', // A softer black for better eye comfort
-  textColor: '#ffffff',
-  typeBoxColor: '#e0e0e0', // Light gray for text in type box
-  headerBackgroundColor: '#0f0f0f', // Darker version of the background
-  correctWordColor: '#76ff03', // Light green for correct words
-  incorrectWordColor: '#ff3d00', // Bright orange for incorrect words
-  wordColor: '#ffffff' // White for general words
+  background: '#121212', // Background Colour
+  textColor: '#c69732', // All text except box and results
+  typeBoxColor: '#626164', // Results
+  headerBackgroundColor: '#ffcccb', // Darker version of the background
+  correctWordColor: '#e6e6e6', // correct word
+  incorrectWordColor: '#aa0101', // incorrect words
+  wordColor: '#626164', // Words inside textbox
+  cursorColor:'#c69732' // Cursor, should be same as textcolor
 };
 
 const redTheme = {
   label: 'Pink',
-  background: '#ffcccb', // Light red for background
-  textColor: '#8b0000', // Dark red for text
-  typeBoxColor: '#8b0000', // Dark red for text in type box
+  background: '#fe8585', // Light red for background
+  textColor: '#541616', // Dark red for text
+  typeBoxColor: '#fce5e5', // Dark red for text in type box
   headerBackgroundColor: '#ffb2b2', // Slightly darker light red
-  correctWordColor: '#00e676', // Light green for correct words
-  incorrectWordColor: '#ff1744', // Bright red for incorrect words
-  wordColor: '#8b0000' // Dark red for general words
+  correctWordColor: '#500058', // Light green for correct words
+  incorrectWordColor: '#ff0000', // Bright red for incorrect words
+  wordColor: '#fce5e5', // Dark red for general words
+  cursorColor:'#c69732'
 };
 
 const lightTheme = {
   label: 'Light',
-  background: '#ffffff',
-  textColor: '#000000',
-  typeBoxColor: '#333333', // Dark text in type box
+  background: '#dedede',
+  textColor: '#880000',
+  typeBoxColor: '#5d5d5d', // Dark text in type box
   headerBackgroundColor: '#e0e0e0', // Light gray for headers
-  correctWordColor: '#4caf50', // Green for correct words
-  incorrectWordColor: '#f44336', // Red for incorrect words
-  wordColor: '#000000' // Black for general words
+  correctWordColor: '#9e9e9e', // Green for correct words
+  incorrectWordColor: '#ff0000', // Red for incorrect words
+  wordColor: '#fffefc', // Black for general words
+  cursorColor:'#c69732'
 };
 
 const oceanTheme = {
   label: 'Ocean',
-  background: '#0077b6',
-  textColor: '#caf0f8',
-  typeBoxColor: '#005f73', // Darker text in type box
+  background: '#8bd2ff',
+  textColor: '#064273',
+  typeBoxColor: '#1da2d8', // Darker text in type box
   headerBackgroundColor: '#005b8a', // Darker ocean blue
-  correctWordColor: '#90e0ef', // Light blue for correct words
-  incorrectWordColor: '#ff6b6b', // Coral for incorrect words
-  wordColor: '#caf0f8' // Light blue for general words
+  correctWordColor: '#6aa2ae', // Light blue for correct words
+  incorrectWordColor: '#ff0000', // Coral for incorrect words
+  wordColor: '#def3f6', // Light blue for general words
+  cursorColor:'#c69732'
 };
 
 const forestTheme = {
   label: 'Forest',
-  background: '#2b2a2a',
-  textColor: '#8ecae6',
-  typeBoxColor: '#f1faee', // Light text in type box
+  background: '#a0ae4b',
+  textColor: '#19270d',
+  typeBoxColor: '#593a0e', // Light text in type box
   headerBackgroundColor: '#242424', // Darker forest background
-  correctWordColor: '#4caf50', // Green for correct words
-  incorrectWordColor: '#ff3d00', // Bright orange for incorrect words
-  wordColor: '#8ecae6' // Light blue for general words
+  correctWordColor: '#1e9b01', // Green for correct words
+  incorrectWordColor: '#ff0000', // Bright orange for incorrect words
+  wordColor: '#626164', // Light blue for general words
+  cursorColor:'#c69732'
 };
 
 const pastelTheme = {
   label: 'Pastel',
-  background: '#f0e5de',
-  textColor: '#7d5a5a',
-  typeBoxColor: '#7d5a5a',
+  background: '#fed3da',
+  textColor: '#bcb2f1',
+  typeBoxColor: '#fef0d6',
   headerBackgroundColor: '#e1c4c2', // Darker pastel pink
-  correctWordColor: '#76ff03', // Light green for correct words
-  incorrectWordColor: '#ff4081', // Pink for incorrect words
-  wordColor: '#7d5a5a' // Dark pastel for general words
+  correctWordColor: '#4a4951', // Light green for correct words
+  incorrectWordColor: '#ff0000', // Pink for incorrect words
+  wordColor: '#7ac2c8', // Dark pastel for general words
+  cursorColor:'#c69732'
 };
 
 const darkModeAlternative = {
   label: 'Midnight',
-  background: '#1a1a40',
-  textColor: '#d1d1d1',
-  typeBoxColor: '#d1d1d1',
+  background: '#1c1d54',
+  textColor: '#040622',
+  typeBoxColor: '#150f38',
   headerBackgroundColor: '#15153a', // Darker midnight blue
-  correctWordColor: '#4caf50', // Green for correct words
+  correctWordColor: '#26236b', // Green for correct words
   incorrectWordColor: '#ff3d00', // Bright orange for incorrect words
-  wordColor: '#d1d1d1' // Light gray for general words
+  wordColor: '#626164', // Light gray for general words
+  cursorColor:'#c69732'
 };
 
 const solarizedTheme = {
