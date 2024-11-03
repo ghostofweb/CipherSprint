@@ -19,7 +19,7 @@ const redTheme = {
   correctWordColor: '#500058', // Light green for correct words
   incorrectWordColor: '#ff0000', // Bright red for incorrect words
   wordColor: '#fce5e5', // Dark red for general words
-  cursorColor:'#c69732'
+  cursorColor:'#541616'
 };
 
 const lightTheme = {
@@ -31,7 +31,7 @@ const lightTheme = {
   correctWordColor: '#9e9e9e', // Green for correct words
   incorrectWordColor: '#ff0000', // Red for incorrect words
   wordColor: '#fffefc', // Black for general words
-  cursorColor:'#c69732'
+  cursorColor:'#880000'
 };
 
 const oceanTheme = {
@@ -43,7 +43,7 @@ const oceanTheme = {
   correctWordColor: '#6aa2ae', // Light blue for correct words
   incorrectWordColor: '#ff0000', // Coral for incorrect words
   wordColor: '#def3f6', // Light blue for general words
-  cursorColor:'#c69732'
+  cursorColor:'#064273'
 };
 
 const forestTheme = {
@@ -55,7 +55,7 @@ const forestTheme = {
   correctWordColor: '#1e9b01', // Green for correct words
   incorrectWordColor: '#ff0000', // Bright orange for incorrect words
   wordColor: '#626164', // Light blue for general words
-  cursorColor:'#c69732'
+  cursorColor:'#19270d'
 };
 
 const pastelTheme = {
@@ -67,7 +67,7 @@ const pastelTheme = {
   correctWordColor: '#4a4951', // Light green for correct words
   incorrectWordColor: '#ff0000', // Pink for incorrect words
   wordColor: '#7ac2c8', // Dark pastel for general words
-  cursorColor:'#c69732'
+  cursorColor:'#fed3da'
 };
 
 const darkModeAlternative = {
