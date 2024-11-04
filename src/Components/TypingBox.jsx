@@ -8,10 +8,10 @@ import { Replay } from "@mui/icons-material";
 function TypingBox() {
     const inputRef = useRef(null);
     const replayButtonRef = useRef(null);
-    const { testTime } = useTestMode();
+    const { testTime, testType, wordCount } = useTestMode();
     const [wordsArray, setWordsArray] = useState(() => generate(1000));
     const [intervalId, setIntervalId] = useState(null);
-    const [countDown, setCountDown] = useState(testTime);
+    const [countDown, setCountDown] = useState(testType === "time" ? testTime : 0);
     const [testStart, setTestStart] = useState(false);
     const [testEnd, setTestEnd] = useState(false);
     const [currWordIndex, setCurrWordIndex] = useState(0);
@@ -35,35 +35,50 @@ function TypingBox() {
     const startTimer = () => {
         const intervalId = setInterval(() => {
             setIntervalId(intervalId);
+    
             setCountDown((prevCount) => {
                 setCorrectChars((correctChars) => {
                     setGraphData((graphData) => {
-                        return [...graphData, [
-                            testTime - prevCount + 1,
-                            (correctChars / 5) / ((testTime - prevCount + 1) / 60)
-                        ]];
+                        return [
+                            ...graphData,
+                            [
+                                testType === "time" ? testTime - prevCount + 1 : prevCount + 1,
+                                (correctChars / 5) / ((testType === "time" ? testTime - prevCount + 1 : prevCount + 1) / 60)
+                            ]
+                        ];
                     });
                     return correctChars;
                 });
-                if (prevCount === 1) {
-                    setTestEnd(true);
-                    clearInterval(intervalId);
-                    return 0;
+    
+                // Time-based test countdown logic
+                if (testType === "time") {
+                    if (prevCount === 1) {
+                        setTestEnd(true);
+                        clearInterval(intervalId);
+                        return 0;
+                    }
+                    return prevCount - 1;
                 }
-                return prevCount - 1;
+    
+                // Word-based test timer increment logic
+                return prevCount + 1;
             });
         }, 1000);
     };
+    
 
     const resetTest = () => {
         clearInterval(intervalId);
-        setCountDown(testTime);
+        setCountDown(testType === "time" ? testTime : 0);
         setCurrWordIndex(0);
         setCurrCharIndex(0);
         setTestStart(false);
         setTestEnd(false);
-        setWordsArray(generate(100));
-        
+        if (testType === "time") {
+            setWordsArray(generate(1000));            
+        } else {
+            setWordsArray(generate(wordCount + 1)); 
+        }
         // Reset all calculation states to 0
         setCorrectChars(0);
         setIncorrectChars(0);
@@ -75,6 +90,7 @@ function TypingBox() {
         resetWordSpanRefClassname();
         focusInput();
     };
+
     const resetWordSpanRefClassname = () => {
         wordsSpanRef.forEach((wordRef) => {
             if (wordRef.current) {
@@ -103,6 +119,10 @@ function TypingBox() {
     if (!testStart && (isAlphabet||isSpace)) {
         startTimer();
         setTestStart(true);
+    }
+    if (testType === "words" && currWordIndex >= wordCount && currWordIndex.length - 1 ) {
+        clearInterval(intervalId);
+        setTestEnd(true);
     }
 
     // Handle space key
@@ -230,7 +250,8 @@ function TypingBox() {
 
     useEffect(() => {
         resetTest();
-    }, [testTime]);
+        return () => clearInterval(intervalId);
+    }, [testTime, wordCount, testType]);
 
     const handleFocus = () => {
       setIsInputFocused(true);
@@ -247,11 +268,17 @@ function TypingBox() {
   const handleReplayBlur = () => {
       setIsReplayFocused(false);
   };
-    useEffect(() => {
-        focusInput();
-        wordsSpanRef[0].current.childNodes[0].className = "current";
-    }, []);
+  useEffect(() => {
+    resetTest();
+    return () => clearInterval(intervalId);
+}, [testTime, wordCount, testType]);
 
+useEffect(() => {
+    focusInput();
+    if (wordsSpanRef[0]?.current?.childNodes[0]) {
+        wordsSpanRef[0].current.childNodes[0].className = "current";
+    }
+}, [wordsSpanRef]);
     // Handle keydown for replay button focus and game start
     const handleKeyDown = (e) => {
       // Prevent default tabbing behavior

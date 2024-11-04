@@ -34,7 +34,7 @@ body {
     display: block;
     width: 100%;
     max-width: 95%;
-    height: 30vh;
+    height: 27vh;
     margin: 0 auto;
     overflow-y: scroll;
     scrollbar-width: none; 
@@ -108,25 +108,83 @@ body {
   0%, 100% { border-left-color: ${({ theme }) => theme.cursorColor}; }
   25%, 75% { border-left-color: black; }
 }
-
 .upper-menu {
   display: flex;
   width: 100%;
-  justify-content: space-between;
-  font-size: 1.5rem; 
-  padding: 0.5rem;
+  max-width: 1200px; /* Set a max-width to limit the menu's size */
+  margin: 0 auto; /* Center the menu horizontally */
+  align-items: center; /* Vertically center items */
+  font-size: 1.5rem;
+  padding: 0.5rem 2rem; /* Add horizontal padding for spacing */
   color: ${({ theme }) => theme.textColor};
+  border-bottom: 1px solid ${({ theme }) => theme.borderColor}; /* Optional: Add a bottom border for separation */
 }
 
-.modes {
+.counter {
+  flex: 0 0 auto; /* Keep the counter fixed on the left */
+}
+
+.mode-labels {
   display: flex;
-  gap: 0.4rem;
+  align-items: center; /* Center align the labels */
+  flex: 1; /* Allow the labels to take remaining space */
+  justify-content: center; /* Center the labels in the available space */
 }
 
-.time-mode:hover {
-  color: green;
-  cursor: pointer
+.separator {
+  margin: 0 1rem; /* Space around the separator */
+  font-weight: bold; /* Make the separator more visible */
 }
+
+.time-options, .word-options {
+  display: flex;
+  gap: 1.5rem; /* Space between option items */
+  flex: 0 0 auto; /* Keep the options fixed on the right */
+}
+
+.time-option, .word-option {
+  cursor: pointer;
+  transition: color 0.3s; /* Smooth transition for hover effect */
+}
+
+.time-option:hover, .word-option:hover {
+  color: ${({ theme }) => theme.hoverColor}; /* Change hover color using theme */
+}
+
+.time-mode, .word-mode {
+  cursor: pointer;
+  transition: color 0.3s; /* Smooth transition for hover effect */
+  padding: 0.5rem 1rem; /* Add padding for clickable areas */
+  border-radius: 4px; /* Rounded corners for buttons */
+}
+
+.time-mode:hover, .word-mode:hover {
+  color: ${({ theme }) => theme.hoverColor}; /* Change hover color using theme */
+  background-color: rgba(255, 255, 255, 0.1); /* Light background on hover */
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+  .upper-menu {
+    flex-direction: column; /* Stack items on smaller screens */
+    align-items: flex-start; /* Align items to the left */
+  }
+
+  .mode-labels {
+    justify-content: space-between; /* Distribute space evenly */
+    width: 100%; /* Allow labels to take full width */
+    margin: 0.5rem 0; /* Margin for spacing */
+  }
+
+  .time-options,
+  .word-options {
+    flex-direction: column; /* Stack options vertically */
+    align-items: flex-end; /* Align options to the right */
+  }
+}
+
+
+
 
 .replay-container {
     display: flex;
