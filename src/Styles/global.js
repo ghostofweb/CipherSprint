@@ -125,7 +125,7 @@ body {
 
 .time-mode:hover {
   color: green;
-  cursor: pointer;
+  cursor: pointer
 }
 
 .replay-container {

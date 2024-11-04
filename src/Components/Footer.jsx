@@ -16,7 +16,7 @@ function Footer() {
   return (
     <div className="footer" style={{ maxWidth: '2000px' }}>
       <div className="footer-left" style={{ color: theme.textColor }}>
-        © {new Date().getFullYear()} MonkeyFight
+        © {new Date().getFullYear()} CipherSprint
       </div>
       <div className="footer-right" style={{ display: 'flex', alignItems: 'center' }}>
         <a 
