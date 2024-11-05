@@ -34,17 +34,19 @@ body {
     display: block;
     width: 100%;
     max-width: 95%;
-    height: 27vh;
+    height: 20vh;
     margin: 0 auto;
-    overflow-y: scroll;
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-    transition: opacity 0.5s ease; 
-    user-select: none;           
+    overflow-y: hidden; /* Disable manual scrolling */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    transition: opacity 0.5s ease;
+    user-select: none;
+    pointer-events: none; /* Prevent touch and mouse scroll */
 }
 .type-box::-webkit-scrollbar {
     display: none;
 }
+
 
 .words {
     gap: 10px;

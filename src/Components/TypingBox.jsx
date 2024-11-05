@@ -222,16 +222,21 @@ function TypingBox() {
   
   // Scroll to the current character
   const scrollToCurrent = () => {
-      const currentElement = wordsSpanRef[currWordIndex]?.current.childNodes[currCharIndex];
-      if (currentElement) {
-          const parentBox = document.querySelector('.type-box');
-          if (currentElement.offsetTop < parentBox.scrollTop || 
-              currentElement.offsetTop + currentElement.offsetHeight > parentBox.scrollTop + parentBox.clientHeight) {
-              currentElement.scrollIntoView({ behavior: "auto", block: "nearest" });
-          }
-      }
-  };
-  
+    const currentElement = wordsSpanRef[currWordIndex]?.current;
+    const parentBox = document.querySelector('.type-box');
+
+    if (currentElement && parentBox) {
+        // Calculate the current position of the element within the parent box
+        const elementTop = currentElement.offsetTop;
+        const elementBottom = elementTop + currentElement.offsetHeight;
+
+        // Scroll to show the line if the current element is not fully in view
+        if (elementTop < parentBox.scrollTop || elementBottom > parentBox.scrollTop + parentBox.clientHeight) {
+            currentElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }
+};
+
   
   const focusInput = () => {
     inputRef.current.focus();
