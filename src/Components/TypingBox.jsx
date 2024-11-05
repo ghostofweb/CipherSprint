@@ -74,18 +74,18 @@ function TypingBox() {
         setCurrCharIndex(0);
         setTestStart(false);
         setTestEnd(false);
+
         if (testType === "time") {
             setWordsArray(generate(1000));            
         } else {
             setWordsArray(generate(wordCount + 1)); 
         }
-        // Reset all calculation states to 0
         setCorrectChars(0);
         setIncorrectChars(0);
         setMissedChars(0);
         setExtraChars(0);
         setCorrectWords(0);
-        setGraphData([]); // Reset graph data as well if necessary
+        setGraphData([]); 
     
         resetWordSpanRefClassname();
         focusInput();

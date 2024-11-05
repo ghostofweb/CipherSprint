@@ -34,14 +34,14 @@ body {
     display: block;
     width: 100%;
     max-width: 95%;
-    height: 20vh;
+    height: 25vh;
     margin: 0 auto;
-    overflow-y: hidden; /* Disable manual scrolling */
+    overflow-y: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
     transition: opacity 0.5s ease;
     user-select: none;
-    pointer-events: none; /* Prevent touch and mouse scroll */
+    pointer-events: auto; /* Change this to auto to allow interactions */
 }
 .type-box::-webkit-scrollbar {
     display: none;
@@ -90,26 +90,40 @@ body {
 
 .correct {
   color: ${({ theme }) => theme.correctWordColor}; 
+  transition: color 0.3s ease;
 }
 
 .incorrect {
   color: ${({ theme }) => theme.incorrectWordColor}; 
+  transition: color 0.3s ease;
 }
 
 .extra {
   color: #6d3e3e;
 }
 
+.current-right{
+   border-right: 1px solid ${({ theme }) => theme.cursorColor};
+    animation: blinkingRight 1s infinite;
+    transition: transform 0.2s ease;
+}
+
 .current {
     border-left: 1px solid ${({ theme }) => theme.cursorColor};
     animation: blinkingLeft 1s infinite;
-    transition: border-color 0.3s;
+    transition: transform 0.2s ease;
 }
 
 @keyframes blinkingLeft {
   0%, 100% { border-left-color: ${({ theme }) => theme.cursorColor}; }
   25%, 75% { border-left-color: black; }
 }
+
+@keyframes blinkingRight {
+  0%, 100% { border-right-color: ${({ theme }) => theme.cursorColor}; }
+  25%, 75% { border-right-color: black; }
+}
+
 .upper-menu {
   display: flex;
   width: 100%;
