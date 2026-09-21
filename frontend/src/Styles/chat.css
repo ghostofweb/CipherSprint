@@ -1,0 +1,292 @@
+/* Chat room: message list, day/unread separators, composer, typing line. */
+
+.cr {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.cr-list-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cr-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: var(--sp-1) 12px var(--sp-1) var(--sp-2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cr-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fixed-height slot at the top so "loading earlier" / "start of
+   conversation" appearing never shifts the messages below it. */
+.cr-top {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.cr-top__note {
+  color: var(--muted);
+  font-size: var(--fs-11);
+}
+
+/* Day separator and the "new messages" divider. */
+.cr-sep {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 var(--sp-1);
+  color: var(--muted);
+  font-size: var(--fs-11);
+}
+
+.cr-sep::before,
+.cr-sep::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.cr-sep--new {
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.cr-sep--new::before,
+.cr-sep--new::after {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* Messages. Others on the left with an avatar at the end of each block;
+   yours on the right. Blocks are consecutive messages from one sender. */
+.cr-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-1);
+  margin-top: 2px;
+}
+
+.cr-msg.is-first {
+  margin-top: var(--sp-1);
+}
+
+.cr-msg.is-mine {
+  justify-content: flex-end;
+}
+
+.cr-msg__avatar {
+  flex: 0 0 28px;
+  width: 28px;
+}
+
+.cr-msg__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 78%;
+}
+
+.cr-msg.is-mine .cr-msg__body {
+  align-items: flex-end;
+}
+
+.cr-msg__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: var(--fs-11);
+}
+
+.cr-msg__name {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.cr-msg__bubble {
+  padding: 8px 12px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-2);
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cr-msg.is-mine .cr-msg__bubble {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.cr-msg__bubble a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* On the accent-tinted bubble the accent link color would lose contrast. */
+.cr-msg.is-mine .cr-msg__bubble a {
+  color: var(--text);
+}
+
+.cr-msg.is-sending .cr-msg__bubble {
+  opacity: 0.6;
+}
+
+.cr-msg.is-failed .cr-msg__bubble {
+  border-color: var(--danger);
+}
+
+.cr-msg__failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--danger-text);
+  font-size: var(--fs-12);
+}
+
+.cr-msg__failed button {
+  padding: 0;
+  color: var(--text);
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Floating "jump to latest" when scrolled away from the bottom. */
+.cr-jump {
+  position: absolute;
+  bottom: var(--sp-1);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--r-1);
+  font: 600 var(--fs-12) / 1 var(--font-ui);
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+/* Typing line: fixed height, so it appearing does not move the list. */
+.cr-typing {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--sp-2);
+  color: var(--muted);
+  font-size: var(--fs-12);
+}
+
+/* The typing test's own caret, blinking on the same 1s step. */
+.cr-caret {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  margin-left: 4px;
+  background: var(--accent);
+  animation: cr-blink 1s step-end infinite;
+}
+
+@keyframes cr-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Composer */
+.cr-composer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
+}
+
+.cr-composer__field {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-1);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.cr-composer__field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.cr-composer__field.is-disabled {
+  opacity: 0.6;
+}
+
+.cr-composer textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: 400 var(--fs-14) / 1.5 var(--font-ui);
+  resize: none;
+}
+
+.cr-composer textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.9;
+}
+
+.cr-composer__count {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  color: var(--muted);
+  font-size: var(--fs-11);
+  pointer-events: none;
+}
+
+.cr-composer__count.is-max {
+  color: var(--danger-text);
+}
+
+.cr-composer__send {
+  width: 40px;
+  height: 40px;
+}
+
+.cr-composer__send:not(:disabled) {
+  color: var(--accent-text);
+}

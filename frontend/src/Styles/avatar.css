@@ -1,0 +1,87 @@
+/* Avatars: photo (<img>) and generated glyph share one size scale. */
+
+.avatar {
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.avatar-sm { width: 28px; height: 28px; }
+.avatar-md { width: 40px; height: 40px; }
+.avatar-lg { width: 72px; height: 72px; }
+.avatar-xl { width: 96px; height: 96px; }
+
+/* Generated glyph: hue comes from the name's hash (--h, set inline). The
+   tile is the hue tinted toward the page background and the glyph is the
+   hue itself, so it stays balanced on light and dark themes alike. */
+.avatar-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, hsl(var(--h) 60% 52%) 26%, var(--bg));
+}
+
+.avatar-glyph svg {
+  width: 62%;
+  height: 62%;
+  fill: hsl(var(--h) 62% 58%);
+}
+
+.avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+/* Presence: filled accent = online, hollow ring = offline. The bg-colored
+   halo separates the dot from whatever the avatar contains. */
+.presence-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.presence-dot.is-offline {
+  background: var(--bg);
+  box-shadow: 0 0 0 2px var(--bg), inset 0 0 0 1.5px var(--muted);
+}
+
+/* Editable avatar (own profile, group owner). */
+.avatar-editable {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.avatar-editable:hover {
+  opacity: 0.8;
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+}
+
+.avatar-hint {
+  color: var(--muted);
+  font-size: var(--fs-12);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

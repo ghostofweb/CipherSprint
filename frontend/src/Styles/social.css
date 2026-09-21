@@ -1,0 +1,362 @@
+/* Friends and groups panel. Rows are separated by space and a hover surface,
+   not by borders; state is carried by the accent rule, weight and color. */
+
+.sp-paper {
+  display: flex !important;
+  flex-direction: column;
+  width: var(--panel-w) !important;
+  max-width: 100vw;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color: var(--text) !important;
+  background: var(--bg) !important;
+  background-image: none !important;
+  border-left: 1px solid var(--line-strong) !important;
+  box-shadow: none !important;
+  font-family: var(--font-ui);
+}
+
+@media (max-width: 480px) {
+  .sp-paper {
+    width: 100vw !important;
+    border-left: 0 !important;
+  }
+}
+
+/* ---- Header (tabs + close) ---- */
+.sp-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+  height: 56px;
+  padding: 0 var(--sp-1) 0 var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.sp-head .ui-tabs {
+  align-self: stretch;
+  border-bottom: 0;
+}
+
+.sp-head .ui-tab {
+  align-items: center;
+  padding: 0;
+}
+
+.sp-head--plain {
+  padding-left: var(--sp-2);
+}
+
+.sp-head__title {
+  font: 700 var(--fs-14) / 1 var(--font-ui);
+}
+
+.sp-banner {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  color: var(--muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-12);
+}
+
+.sp-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sp-tab {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sp-search {
+  flex: 0 0 auto;
+  padding: var(--sp-2) var(--sp-2) var(--sp-1);
+}
+
+.sp-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 var(--sp-1) var(--sp-2);
+  overflow-y: auto;
+}
+
+.sp-foot {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+
+.sp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-1);
+}
+
+.sp-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+  padding: var(--sp-1);
+  color: var(--muted);
+  font-size: var(--fs-13);
+}
+
+/* ---- Sections ---- */
+.sp-sec {
+  margin-top: var(--sp-2);
+}
+
+.sp-sec__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0 var(--sp-1) var(--sp-0);
+  color: var(--muted);
+  font: 400 var(--fs-12) / 1.4 var(--font-ui);
+}
+
+.sp-sec__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 var(--sp-1) var(--sp-0);
+  color: var(--muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sp-sec__toggle .sp-sec__title {
+  padding: 0;
+}
+
+.sp-sec__toggle:hover {
+  color: var(--text);
+}
+
+.sp-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Rows ---- */
+.sp-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-0);
+  min-height: 64px;
+  border-radius: var(--r-1);
+  transition: background-color var(--dur) var(--ease);
+}
+
+.sp-row:hover,
+.sp-row:focus-within {
+  background: var(--surface);
+}
+
+/* Unread: the same accent rule used for the current nav item and the
+   leaderboard "you" row, plus weight and contrast. */
+.sp-row.has-unread {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.sp-row__main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: var(--sp-1);
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: var(--r-1);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sp-row__main.is-static {
+  cursor: default;
+}
+
+.sp-row__text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-row__name {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-searching .sp-row__name {
+  font-weight: 400;
+}
+
+.sp-searching .sp-row__name strong {
+  font-weight: 700;
+}
+
+.sp-row.has-unread .sp-row__name {
+  font-weight: 700;
+}
+
+.sp-row__sub {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--fs-12);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-row.has-unread .sp-row__sub {
+  color: var(--text);
+}
+
+.sp-row__meta {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-0);
+}
+
+.sp-row__time {
+  color: var(--muted);
+  font-size: var(--fs-11);
+}
+
+.sp-row__more {
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease), color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+
+.sp-row:hover .sp-row__more,
+.sp-row:focus-within .sp-row__more,
+.sp-row__more[aria-expanded="true"] {
+  opacity: 1;
+}
+
+/* No hover on touch: keep the menu reachable. */
+@media (hover: none) {
+  .sp-row__more {
+    opacity: 1;
+  }
+}
+
+.sp-row__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-0);
+  padding-right: var(--sp-1);
+}
+
+.sp-row__state {
+  padding-right: var(--sp-0);
+  color: var(--muted);
+  font-size: var(--fs-12);
+}
+
+.sp-row--confirm {
+  justify-content: space-between;
+  padding: 0 0 0 var(--sp-1);
+  background: var(--danger-soft);
+}
+
+.sp-row__confirm-text {
+  font-size: var(--fs-13);
+}
+
+/* ---- Conversation view ---- */
+.sp-conv {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sp-conv__head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 56px;
+  padding: var(--sp-1);
+  border-bottom: 1px solid var(--line);
+}
+
+.sp-conv__id {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sp-conv__name {
+  overflow: hidden;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-conv__sub {
+  color: var(--muted);
+  font-size: var(--fs-12);
+}
+
+/* ---- Toast with an action (friend request) ---- */
+.toast-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+}
+
+.toast-action span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toast-link {
+  flex: 0 0 auto;
+  padding: 0;
+  white-space: nowrap;
+  color: var(--accent-text);
+  background: none;
+  border: 0;
+  font: 700 var(--fs-13) / 1 var(--font-ui);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}

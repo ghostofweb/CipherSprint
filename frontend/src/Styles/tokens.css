@@ -1,0 +1,109 @@
+/*
+ * Design tokens.
+ *
+ * The seven theme variables (--bg, --text, --sub-text, --word-color,
+ * --correct-color, --incorrect-color, --caret-color) are set on :root by
+ * ThemeContext at runtime. Everything below is derived from them with
+ * color-mix, so every surface, hairline and state follows all themes
+ * without a per-theme override.
+ */
+:root {
+  --accent: var(--caret-color);
+  --danger: var(--incorrect-color);
+
+  /* Contrast-guaranteed variants. ThemeContext overwrites these per theme
+     (Utils/themeTokens.ts) so each is at least WCAG AA against --bg; the
+     values below are only the first-paint fallback.
+       --muted        secondary UI text and icons (--sub-text is tuned for
+                      the typing test and is too dim for small text)
+       --accent-text  the accent when used as text (counts, links)
+       --danger-text  errors as text
+       --on-accent    text/icons on an accent fill */
+  --muted: var(--sub-text);
+  --accent-text: var(--accent);
+  --danger-text: var(--danger);
+  --on-accent: var(--bg);
+
+  --line: color-mix(in srgb, var(--text) 14%, transparent);
+  --line-strong: color-mix(in srgb, var(--text) 32%, transparent);
+  --surface: color-mix(in srgb, var(--text) 5%, transparent);
+  --surface-2: color-mix(in srgb, var(--text) 9%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger) 14%, transparent);
+
+  --font-ui: "Roboto Mono", monospace;
+
+  /* Type scale (rem, 16px root). One family; hierarchy comes from size,
+     weight and contrast, not from a second typeface. */
+  --fs-11: 0.6875rem;
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-16: 1rem;
+  --fs-20: 1.25rem;
+  --fs-28: 1.75rem;
+
+  /* 8px grid. 4px is allowed only for icon-to-label micro gaps. */
+  --sp-0: 4px;
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-6: 48px;
+
+  --r-1: 4px;
+  --r-2: 8px;
+
+  --dur: 120ms;
+  --ease: ease-in-out;
+  --dur-panel: 180ms;
+  --ease-panel: cubic-bezier(0.2, 0, 0, 1);
+
+  --tap: 40px;
+  --panel-w: 380px;
+}
+
+/* ---- Accessibility + polish baseline ---- */
+
+:where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"]), [role="button"], [role="tab"], [role="option"], [role="menuitem"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Numerals that change (counts, times, wpm) should not jitter the layout. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
