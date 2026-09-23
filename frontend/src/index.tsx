@@ -6,10 +6,14 @@ import './Styles/avatar.css';
 import './Styles/chat.css';
 import './Styles/social.css';
 import './Styles/pages.css';
+import './Styles/race.css';
+import './Styles/test.css';
+import './Styles/features.css';
 import App from './App';
 import { TestModeContextProvider } from './Context/TestModeContext';
 import { ThemeContextProvider } from './Context/ThemeContext';
 import { AuthContextProvider } from './Context/AuthContext';
+import { SettingsProvider } from './Context/SettingsContext';
 import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -22,11 +26,13 @@ root.render(
     <GoogleOAuthProvider clientId={googleClientId || ''}>
     <ThemeContextProvider>
     <AuthContextProvider>
+    <SettingsProvider>
     <TestModeContextProvider>
       <BrowserRouter>
     <App />
     </BrowserRouter>
     </TestModeContextProvider>
+    </SettingsProvider>
     </AuthContextProvider>
     </ThemeContextProvider>
     </GoogleOAuthProvider>

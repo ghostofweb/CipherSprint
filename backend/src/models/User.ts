@@ -22,6 +22,10 @@ export interface IUser extends Document {
   charMistakes: Record<string, number>;
   recentScores: { wpm: number; accuracy: number; consistency: number }[];
   streak: { current: number; max: number };
+  // Synced app settings (validated by the shared settingsSchema).
+  settings: Record<string, unknown> | null;
+  // Bumped on a password change or reset: every token signed before it stops working.
+  tokenVersion: number;
 
   createdAt: Date;
   updatedAt: Date;
@@ -63,6 +67,9 @@ const userSchema = new Schema<IUser>(
       current: { type: Number, default: 0 },
       max: { type: Number, default: 0 },
     },
+
+    settings: { type: Schema.Types.Mixed, default: null },
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

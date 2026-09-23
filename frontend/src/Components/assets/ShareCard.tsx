@@ -21,6 +21,7 @@ export interface ShareCardProps {
     durationSeconds: number;
     dateLabel: string;
     graphData: [number, number][];
+    personalBest?: boolean;
 }
 
 export const SHARE_CARD_SIZE = { width: 1200, height: 630 } as const;
@@ -42,7 +43,7 @@ function sparkline(data: [number, number][]): { points: string; last: [number, n
 }
 
 const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(function ShareCard(props, ref) {
-    const { theme: t, username, wpm, accuracy, rawWpm, consistency, modeLabel, durationSeconds, dateLabel, graphData } = props;
+    const { theme: t, username, wpm, accuracy, rawWpm, consistency, modeLabel, durationSeconds, dateLabel, graphData, personalBest } = props;
     const muted = deriveUiTokens(t)['--muted'];
     const { points, last } = sparkline(graphData);
 
@@ -70,17 +71,16 @@ const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(function Shar
                 justifyContent: 'space-between',
                 background: t.background,
                 color: t.textColor,
-                fontFamily: '"Roboto Mono", monospace',
+                fontFamily: '"IBM Plex Mono", monospace',
             }}
         >
             {/* Brand row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <svg width="44" height="44" viewBox="0 0 64 64">
-                        <path d="M36 23.6A13 13 0 1 0 36 40.4" fill="none" stroke={t.textColor} strokeWidth="7" strokeLinecap="round" transform="translate(2.2 0)" />
-                        <rect x="47.7" y="13" width="5" height="38" rx="2.5" fill={t.cursorColor} />
-                    </svg>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>CipherSprint</div>
+                {/* The wordmark: cipher, the caret, sprint. */}
+                <div style={{ display: 'flex', alignItems: 'center', fontSize: 30, fontWeight: 600, letterSpacing: '-0.01em' }}>
+                    <span>cipher</span>
+                    <span style={{ display: 'inline-block', width: 4, height: 32, margin: '0 5px', borderRadius: 2, background: t.cursorColor }} />
+                    <span>sprint</span>
                 </div>
                 <div style={{ fontSize: 22, color: muted }}>{username ? `@${username}` : ''}</div>
             </div>
@@ -89,7 +89,14 @@ const ShareCard = React.forwardRef<HTMLDivElement, ShareCardProps>(function Shar
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div>
-                        <div style={{ fontSize: 24, color: muted }}>wpm</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 24, color: muted }}>
+                            wpm
+                            {personalBest && (
+                                <span style={{ padding: '2px 0 2px 12px', borderLeft: `4px solid ${t.cursorColor}`, color: t.textColor, fontWeight: 600 }}>
+                                    new personal best
+                                </span>
+                            )}
+                        </div>
                         <div style={{ fontSize: 176, fontWeight: 700, lineHeight: 1, color: t.cursorColor }}>{wpm}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>

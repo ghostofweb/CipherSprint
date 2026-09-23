@@ -18,11 +18,15 @@
                       the typing test and is too dim for small text)
        --accent-text  the accent when used as text (counts, links)
        --danger-text  errors as text
-       --on-accent    text/icons on an accent fill */
+       --on-accent    text/icons on an accent fill
+       --rival        the second racer in a race (caret, lane); turned from the accent
+       --rival-text   the rival colour as text (name tags) */
   --muted: var(--sub-text);
   --accent-text: var(--accent);
   --danger-text: var(--danger);
   --on-accent: var(--bg);
+  --rival: var(--sub-text);
+  --rival-text: var(--muted);
 
   --line: color-mix(in srgb, var(--text) 14%, transparent);
   --line-strong: color-mix(in srgb, var(--text) 32%, transparent);
@@ -31,7 +35,9 @@
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --danger-soft: color-mix(in srgb, var(--danger) 14%, transparent);
 
-  --font-ui: "Roboto Mono", monospace;
+  --font-ui: "IBM Plex Mono", ui-monospace, monospace;
+  /* The typing text; Settings can swap it (see SettingsContext). */
+  --font-test: var(--font-ui);
 
   /* Type scale (rem, 16px root). One family; hierarchy comes from size,
      weight and contrast, not from a second typeface. */

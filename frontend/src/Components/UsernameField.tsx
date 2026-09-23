@@ -4,7 +4,7 @@ import Spinner from './ui/Spinner';
 import { api } from '../Utils/api';
 import { useDebouncedValue } from '../Hooks/useDebouncedValue';
 
-type Status = null | 'checking' | 'available' | 'taken' | 'invalid';
+type Status = null | 'checking' | 'available' | 'taken' | 'invalid' | 'unknown';
 
 interface UsernameFieldProps {
     value: string;
@@ -36,7 +36,13 @@ function UsernameField({ value, onChange, onAvailabilityChange, autoFocus, place
                 else setStatus(res.available ? 'available' : 'taken');
                 onAvailabilityChange?.(res.available);
             })
-            .catch(() => { if (!cancelled) setStatus(null); });
+            // The check itself failed (offline, server down). Say so, and do not
+            // block signing up: the server still validates the name on submit.
+            .catch(() => {
+                if (cancelled) return;
+                setStatus('unknown');
+                onAvailabilityChange?.(true);
+            });
         return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debounced]);
@@ -57,7 +63,7 @@ function UsernameField({ value, onChange, onAvailabilityChange, autoFocus, place
             onChange={(e) => onChange(e.target.value)}
             trailing={shown === 'checking' ? <Spinner size={14} /> : undefined}
             error={shown === 'taken' ? 'That username is taken.' : shown === 'invalid' ? '3-20 characters: letters, numbers and underscores.' : null}
-            hint={shown === 'available' ? 'Available' : shown === 'checking' ? 'Checking...' : undefined}
+            hint={shown === 'available' ? 'Available' : shown === 'checking' ? 'Checking...' : shown === 'unknown' ? "Couldn't check this name. You can still try it." : undefined}
             hintTone={shown === 'available' ? 'success' : 'default'}
         />
     );

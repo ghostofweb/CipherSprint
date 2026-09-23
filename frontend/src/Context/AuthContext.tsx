@@ -16,6 +16,9 @@ interface AuthContextValue {
     updateVisibility: (isPublic: boolean) => Promise<boolean>;
     updatePresence: (showPresence: boolean) => Promise<boolean>;
     updateAvatar: (url: string, publicId: string) => Promise<string | null>;
+    changePassword: (current: string, next: string) => Promise<void>;
+    resetPassword: (token: string, password: string) => Promise<void>;
+    deleteAccount: (confirm: string, password?: string) => Promise<void>;
 }
 
 const authContext = createContext<AuthContextValue | undefined>(undefined);
@@ -102,9 +105,36 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         return res.avatarUrl;
     };
 
+    // A password change or reset issues a fresh token (all older ones stop
+    // working), so it is adopted like a login.
+    const adoptSession = (token: string, next: PublicUser) => {
+        setToken(token);
+        setUser(next);
+        // The socket authenticated with the old token; reconnect with the new one.
+        disconnectSocket();
+    };
+
+    const changePassword = async (current: string, next: string) => {
+        const res = await api.changePassword(current, next);
+        adoptSession(res.token, res.user);
+    };
+
+    const resetPassword = async (token: string, password: string) => {
+        const res = await api.resetPassword(token, password);
+        adoptSession(res.token, res.user);
+        const me = await api.me();
+        setAggregates(me.aggregates);
+    };
+
+    const deleteAccount = async (confirm: string, password?: string) => {
+        await api.deleteAccount(confirm, password);
+        logout();
+    };
+
     const values: AuthContextValue = {
         user, aggregates, loading, login, signup, loginWithGoogle, completeGoogleSignup,
         logout, refreshAggregates, updateVisibility, updatePresence, updateAvatar,
+        changePassword, resetPassword, deleteAccount,
     };
 
     return <authContext.Provider value={values}>{children}</authContext.Provider>;

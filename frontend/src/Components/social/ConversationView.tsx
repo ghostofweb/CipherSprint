@@ -16,11 +16,12 @@ interface HeaderProps {
     title: string;
     subtitle?: string;
     onBack: () => void;
-    // The one contextual action (view profile / open the full page).
+    // Contextual actions (view profile / open the full page / challenge).
     action?: { icon: 'user' | 'expand'; label: string; onClick: () => void };
+    secondary?: { icon: 'race'; label: string; onClick: () => void };
 }
 
-function Header({ avatar, title, subtitle, onBack, action }: HeaderProps) {
+function Header({ avatar, title, subtitle, onBack, action, secondary }: HeaderProps) {
     const { close } = useSocial();
     return (
         <header className="sp-conv__head">
@@ -30,6 +31,7 @@ function Header({ avatar, title, subtitle, onBack, action }: HeaderProps) {
                 <div className="sp-conv__name">{title}</div>
                 {subtitle && <div className="sp-conv__sub">{subtitle}</div>}
             </div>
+            {secondary && <IconButton icon={secondary.icon} label={secondary.label} onClick={secondary.onClick} />}
             {action && <IconButton icon={action.icon} label={action.label} onClick={action.onClick} />}
             <IconButton icon="close" label="Close panel" onClick={close} />
         </header>
@@ -75,6 +77,18 @@ function DmConversation({ username }: { username: string }) {
                         navigate(`/u/${username}`);
                     },
                 }}
+                secondary={
+                    friend
+                        ? {
+                              icon: 'race',
+                              label: `Challenge ${username} to a race`,
+                              onClick: () => {
+                                  close();
+                                  navigate(`/race?with=${encodeURIComponent(username)}`);
+                              },
+                          }
+                        : undefined
+                }
             />
             {error ? (
                 <EmptyState title="Can't open this conversation">{error}</EmptyState>

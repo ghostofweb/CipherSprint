@@ -223,6 +223,10 @@ export const SocialContextProvider = ({ children }: { children: ReactNode }) => 
         const onPresence = (payload: PresenceUpdate) => {
             setFriends((prev) => prev.map((f) => (f.userId === String(payload.userId) ? { ...f, online: payload.online } : f)));
         };
+        // A friend started or finished a race (watchable while it lasts).
+        const onRacing = (payload: { userId: string; code: string | null }) => {
+            setFriends((prev) => prev.map((f) => (f.userId === String(payload.userId) ? { ...f, racingCode: payload.code } : f)));
+        };
 
         // Fired for every participant of a message, sender included -- so
         // this is the single path that keeps the friends/groups list
@@ -287,6 +291,7 @@ export const SocialContextProvider = ({ children }: { children: ReactNode }) => 
         socket.on('friends:changed', onOwnChange);
         socket.on('friend:removed', onRemoved);
         socket.on('presence:update', onPresence);
+        socket.on('friend:racing', onRacing);
         socket.on('notification:message', onMessage);
 
         return () => {
@@ -299,6 +304,7 @@ export const SocialContextProvider = ({ children }: { children: ReactNode }) => 
             socket.off('friends:changed', onOwnChange);
             socket.off('friend:removed', onRemoved);
             socket.off('presence:update', onPresence);
+            socket.off('friend:racing', onRacing);
             socket.off('notification:message', onMessage);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

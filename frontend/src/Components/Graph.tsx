@@ -22,7 +22,7 @@ ChartJS.register(
   Legend
 );
 
-ChartJS.defaults.font.family = '"Roboto Mono", monospace';
+ChartJS.defaults.font.family = '"IBM Plex Mono", monospace';
 
 interface GraphProps {
   graphData: [number, number][];
@@ -41,6 +41,7 @@ const Graph = ({ graphData, rawGraphData, errorGraphData }: GraphProps) => {
 
   return (
     <Line
+      aria-label={`Words per minute each second of this test, ending at ${graphData[graphData.length - 1]?.[1] ?? 0} wpm.`}
       data={{
         labels,
         datasets: [

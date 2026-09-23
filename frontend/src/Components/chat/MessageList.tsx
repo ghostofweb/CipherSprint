@@ -6,6 +6,7 @@ import EmptyState from '../ui/EmptyState';
 import { SkeletonRows } from '../ui/Skeleton';
 import { NoMessagesArt } from '../assets/illustrations';
 import MessageText from './MessageText';
+import { ReportDialog, ReportTarget } from '../safety/SafetyDialogs';
 import { cx } from '../../Utils/cx';
 import { formatClock, formatDayLabel, sameDay } from '../../Utils/format';
 
@@ -57,9 +58,10 @@ interface MessageRowProps {
     avatarUrl?: string | null;
     onRetry: (clientId: string) => void;
     onDiscard: (clientId: string) => void;
+    onReport: (m: ChatItem) => void;
 }
 
-const MessageRow = React.memo(function MessageRow({ m, mine, first, last, showName, avatarUrl, onRetry, onDiscard }: MessageRowProps) {
+const MessageRow = React.memo(function MessageRow({ m, mine, first, last, showName, avatarUrl, onRetry, onDiscard, onReport }: MessageRowProps) {
     return (
         <div className={cx('cr-msg', mine && 'is-mine', first && 'is-first', m.status && `is-${m.status}`)}>
             {!mine && (
@@ -74,8 +76,15 @@ const MessageRow = React.memo(function MessageRow({ m, mine, first, last, showNa
                         <time dateTime={m.createdAt} className="tnum">{formatClock(m.createdAt)}</time>
                     </div>
                 )}
-                <div className="cr-msg__bubble" title={new Date(m.createdAt).toLocaleString()}>
-                    <MessageText text={m.text} />
+                <div className="cr-msg__line">
+                    <div className="cr-msg__bubble" title={new Date(m.createdAt).toLocaleString()}>
+                        <MessageText text={m.text} />
+                    </div>
+                    {!mine && !m.status && (
+                        <button type="button" className="cr-msg__report" aria-label={`Report this message from ${m.senderUsername}`} onClick={() => onReport(m)}>
+                            <Icon name="flag" size={14} />
+                        </button>
+                    )}
                 </div>
                 {m.status === 'failed' && m.clientId && (
                     <div className="cr-msg__failed" role="alert">
@@ -102,6 +111,11 @@ interface MessageListProps {
 
 function MessageList({ chat, me, avatarsByUsername, showNames, emptyTitle, emptyBody, startLabel }: MessageListProps) {
     const { messages, loading, error, hasMore, loadingOlder, loadOlder, firstUnreadId, retry, discard } = chat;
+    const [reporting, setReporting] = useState<ReportTarget | null>(null);
+    const onReport = React.useCallback(
+        (m: ChatItem) => setReporting({ username: m.senderUsername, kind: 'message', ref: m._id, excerpt: m.text.slice(0, 500) }),
+        []
+    );
     const listRef = useRef<HTMLDivElement>(null);
     const innerRef = useRef<HTMLDivElement>(null);
     const topRef = useRef<HTMLDivElement>(null);
@@ -232,6 +246,7 @@ function MessageList({ chat, me, avatarsByUsername, showNames, emptyTitle, empty
                                 avatarUrl={avatarsByUsername[row.m.senderUsername]}
                                 onRetry={retry}
                                 onDiscard={discard}
+                                onReport={onReport}
                             />
                         );
                     })}
@@ -244,6 +259,7 @@ function MessageList({ chat, me, avatarsByUsername, showNames, emptyTitle, empty
                     {unseen > 0 ? `${unseen} new` : 'Latest'}
                 </button>
             )}
+            <ReportDialog target={reporting} onClose={() => setReporting(null)} />
         </div>
     );
 }

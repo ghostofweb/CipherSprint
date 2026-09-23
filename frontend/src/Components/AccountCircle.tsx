@@ -110,6 +110,16 @@ function AccountCircle({ hideChrome }: AccountCircleProps) {
                         <Icon name="user" size={16} />
                         My profile
                     </MenuItem>
+                    <MenuItem className="ui-menu-item" onClick={() => { closeMenu(); navigate('/settings'); }}>
+                        <Icon name="settings" size={16} />
+                        Settings
+                    </MenuItem>
+                    {user.isAdmin && (
+                        <MenuItem className="ui-menu-item" onClick={() => { closeMenu(); navigate('/admin/reports'); }}>
+                            <Icon name="shield" size={16} />
+                            Reports
+                        </MenuItem>
+                    )}
                     <Divider className="ui-menu-divider" />
                     <div className="ui-menu-row">
                         <span>Public profile</span>

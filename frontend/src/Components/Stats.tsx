@@ -1,45 +1,48 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Graph from './Graph';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Graph from './Graph';
+import KeyboardHeatmap from './KeyboardHeatmap';
+import DecryptText from './DecryptText';
+import IconButton from './ui/IconButton';
+import Button from './ui/Button';
+import Spinner from './ui/Spinner';
+import ShareCard from './assets/ShareCard';
 import { useTestMode } from '../Context/TestModeContext';
 import { useAuth } from '../Context/AuthContext';
 import { useTheme } from '../Context/ThemeContext';
-import { saveResult } from '../Utils/resultsHistory';
+import { usePractice } from '../Hooks/usePractice';
+import { saveResult, saveLastReplay, localBest } from '../Utils/resultsHistory';
+import { enqueueResult, isNetworkError } from '../Utils/offlineQueue';
 import { api } from '../Utils/api';
 import { downloadBlob } from '../Utils/download';
-import IconButton from './ui/IconButton';
-import Spinner from './ui/Spinner';
-import ShareCard from './assets/ShareCard';
+import { LANGUAGE_NAMES } from '../Utils/words';
 import type { FinalStats } from '../Hooks/useTypingEngine';
 
 interface StatsProps extends FinalStats {
     resetTest: () => void;
 }
 
+// Only standard tests rank; practice, custom and zen texts are not comparable.
+const isRanked = (mode: string) => mode === 'time' || mode === 'words' || mode === 'quote';
+
+interface PbState {
+    isNew: boolean;
+    previous: number | null;
+}
+
 function Stats(props: StatsProps) {
     const {
-        mode,
-        modeDetail,
-        wpm,
-        rawWpm,
-        accuracy,
-        consistency,
-        correctChars,
-        incorrectChars,
-        missedChars,
-        extraChars,
-        correctWords,
-        charMistakes,
-        durationSeconds,
-        timestamp,
-        graphData,
-        rawGraphData,
-        errorGraphData,
-        resetTest,
+        mode, modeDetail, wpm, rawWpm, accuracy, consistency,
+        correctChars, incorrectChars, missedChars, extraChars, correctWords,
+        charMistakes, durationSeconds, timestamp, graphData, rawGraphData, errorGraphData,
+        language, words, replay, resetTest,
     } = props;
-    const { testType, testTime, wordCount, quoteLength } = useTestMode();
+    const { testType, testTime, wordCount, quoteLength, practiceKeys } = useTestMode();
     const { user, refreshAggregates } = useAuth();
     const { theme } = useTheme();
+    const navigate = useNavigate();
+    const practise = usePractice();
 
     const safeWpm = isNaN(wpm) ? 0 : wpm;
     const safeRawWpm = isNaN(rawWpm) ? 0 : rawWpm;
@@ -49,10 +52,10 @@ function Stats(props: StatsProps) {
     const savedRef = useRef(false);
     const shareRef = useRef<HTMLDivElement>(null);
     const [capturing, setCapturing] = useState(false);
+    const [pb, setPb] = useState<PbState | null>(null);
 
-    // Always save to the local results history (works regardless of login
-    // state), and additionally sync to the backend when logged in so it
-    // follows the account across devices.
+    // Saved once: to this browser (always), to the account when signed in,
+    // or to the offline queue when the account can't be reached.
     useEffect(() => {
         if (savedRef.current || isNaN(safeAccuracy) || !safeWpm) return;
         savedRef.current = true;
@@ -63,13 +66,26 @@ function Stats(props: StatsProps) {
             correctWords, charMistakes, durationSeconds, timestamp,
             graphData, rawGraphData, errorGraphData,
         };
+        const ranked = isRanked(mode) && !practiceKeys;
+        const before = ranked && !user ? localBest(mode, modeDetail) : null;
         saveResult(payload);
+        if (replay.length) saveLastReplay({ mode, modeDetail, wpm, accuracy, timestamp, words, replay });
+        if (ranked && !user) setPb({ isNew: before === null ? false : safeWpm > before, previous: before });
 
         if (user) {
-            api.saveResult(payload)
-                .then(() => refreshAggregates())
+            const full = { ...payload, language, replay, words };
+            api.saveResult(full)
+                .then((res) => {
+                    if (ranked) setPb(res.personalBest);
+                    return refreshAggregates();
+                })
                 .catch((error: Error) => {
-                    toast.error(`Couldn't sync this result: ${error.message}`);
+                    if (isNetworkError(error)) {
+                        enqueueResult(full);
+                        toast.info("You're offline. This result will sync when you're back.");
+                    } else {
+                        toast.error(`Couldn't sync this result: ${error.message}`);
+                    }
                 });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,13 +96,15 @@ function Stats(props: StatsProps) {
         words: `words ${wordCount}`,
         quote: `quote ${quoteLength}`,
         zen: "zen",
-        custom: "custom",
+        custom: practiceKeys ? 'practice' : "custom",
     };
-    const testTypeLabel = testTypeLabels[testType] ?? testType;
+    const baseLabel = testTypeLabels[testType] ?? testType;
+    const testTypeLabel = language !== 'english' && (testType === 'time' || testType === 'words') ? `${baseLabel} ${LANGUAGE_NAMES[language].toLowerCase()}` : baseLabel;
     const testDate = timestamp ? new Date(timestamp) : null;
     const testTimeLabel = testDate
         ? testDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
         : '';
+    const mistakeCount = Object.values(charMistakes).reduce((a, b) => a + b, 0);
 
     const handleScreenshot = async () => {
         const el = shareRef.current;
@@ -112,15 +130,23 @@ function Stats(props: StatsProps) {
 
     return (
         <div className="results">
+            {pb?.isNew && pb.previous !== null && (
+                <div className="pb-banner" role="status">
+                    <span className="pb-banner__rule" aria-hidden="true" />
+                    <strong>New personal best</strong>
+                    <span className="tnum">+{safeWpm - pb.previous} over {pb.previous} wpm in {testTypeLabel}</span>
+                </div>
+            )}
             <div className="results-main">
                 <div className="results-primary">
                     <div className="stat-block">
                         <div className="stat-label">wpm</div>
-                        <div className="stat-value accent">{safeWpm}</div>
+                        <DecryptText className="stat-value accent tnum" text={String(safeWpm)} />
+                        {pb && !pb.isNew && pb.previous !== null && <div className="stat-sub">best {pb.previous}</div>}
                     </div>
                     <div className="stat-block">
                         <div className="stat-label">acc</div>
-                        <div className="stat-value accent">{safeAccuracy}%</div>
+                        <DecryptText className="stat-value accent tnum" text={`${safeAccuracy}%`} />
                     </div>
                 </div>
                 <div className="results-graph">
@@ -134,24 +160,31 @@ function Stats(props: StatsProps) {
                 </div>
                 <div className="stat-block small">
                     <div className="stat-label">raw</div>
-                    <div className="stat-value">{safeRawWpm}</div>
+                    <div className="stat-value tnum">{safeRawWpm}</div>
                 </div>
                 <div className="stat-block small">
                     <div className="stat-label">characters</div>
-                    <div className="stat-value">{correctChars}/{incorrectChars}/{missedChars}/{extraChars}</div>
+                    <div className="stat-value tnum" title="correct / incorrect / missed / extra">{correctChars}/{incorrectChars}/{missedChars}/{extraChars}</div>
                 </div>
                 <div className="stat-block small">
                     <div className="stat-label">consistency</div>
-                    <div className="stat-value">{safeConsistency}%</div>
+                    <div className="stat-value tnum">{safeConsistency}%</div>
                 </div>
                 <div className="stat-block small">
                     <div className="stat-label">time</div>
-                    <div className="stat-value">{durationSeconds}s</div>
+                    <div className="stat-value tnum">{durationSeconds}s</div>
                     <div className="stat-sub">{testTimeLabel}</div>
                 </div>
             </div>
+            {mistakeCount > 0 && (
+                <div className="results-keys">
+                    <KeyboardHeatmap mistakes={charMistakes} compact caption={`${mistakeCount} mistake${mistakeCount === 1 ? '' : 's'} this test`} />
+                    <Button size="sm" icon="target" onClick={() => practise(charMistakes)}>Practise these keys</Button>
+                </div>
+            )}
             <div className="results-toolbar">
-                <IconButton icon="restart" iconSize={22} label="Restart test" onClick={resetTest} />
+                <IconButton icon="restart" iconSize={22} label="Next test" onClick={resetTest} />
+                {replay.length > 0 && <IconButton icon="replay" iconSize={22} label="Watch replay" onClick={() => navigate('/replay/last')} />}
                 {capturing ? (
                     <span className="ui-iconbtn" role="status" aria-label="Creating image"><Spinner size={18} /></span>
                 ) : (
@@ -170,6 +203,7 @@ function Stats(props: StatsProps) {
                 durationSeconds={durationSeconds}
                 dateLabel={testDate ? testDate.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ''}
                 graphData={graphData}
+                personalBest={!!pb?.isNew && pb.previous !== null}
             />
         </div>
     );

@@ -1,13 +1,19 @@
-import { generate } from "random-words";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Language } from "@ciphersprint/shared";
 import { useTestMode, TestType } from "../Context/TestModeContext";
+import { useSettings } from "../Context/SettingsContext";
 import { applyNumbers, applyPunctuation } from "../Utils/wordModifiers";
 import { getRandomQuote } from "../Utils/quotes";
+import { languagesReady, loadLanguages, randomWords } from "../Utils/words";
+import { playKeySound } from "../Utils/sound";
 
 const WORD_BUFFER = 250; // words generated up-front for time mode
 const REFILL_THRESHOLD = 20; // append more words once this close to the end
 
-const genWords = (n: number): string[] => generate(n);
+// A replay is the keystroke timeline: [ms since the previous key, key],
+// with "\b" for backspace. Capped so a very long zen session stays small.
+export type ReplayEvent = [number, string];
+export const MAX_REPLAY_EVENTS = 6000;
 
 // Modes whose word list is a fixed array, typed start to finish, no refill
 // (as opposed to "time" which continuously refills, and "zen" which grows
@@ -29,9 +35,11 @@ interface BuildWordsArgs {
     customText: string;
     punctuation: boolean;
     numbers: boolean;
+    language: Language;
 }
 
-const buildWords = ({ testType, wordCount, quoteLength, customText, punctuation, numbers }: BuildWordsArgs): string[] => {
+const buildWords = ({ testType, wordCount, quoteLength, customText, punctuation, numbers, language }: BuildWordsArgs): string[] => {
+    const genWords = (n: number) => randomWords(n, language);
     if (testType === "time") {
         return applyModifiers(genWords(WORD_BUFFER), punctuation, numbers);
     }
@@ -101,18 +109,61 @@ export interface FinalStats {
     correctWords: number;
     charMistakes: Record<string, number>;
     durationSeconds: number;
+    // Exact run time (durationSeconds is rounded); a race scores on it.
+    elapsedMs: number;
     timestamp: number;
     graphData: [number, number][];
     rawGraphData: [number, number][];
     errorGraphData: [number, number][];
+    language: Language;
+    // The text as typed against, and every key: enough to replay the test.
+    words: string[];
+    replay: ReplayEvent[];
 }
 
-export function useTypingEngine() {
-    const { testTime, testType, wordCount, quoteLength, customText, punctuation, numbers } = useTestMode();
+// A race hands the engine a fixed text (the same one the opponent has) and
+// its own settings, instead of the solo ones from context.
+export interface RaceEngineOptions {
+    words: string[];
+    config: { testType: "time" | "words" | "quote"; testTime: number; wordCount: number };
+    // Local wall-clock ms at which the race begins. Keys are ignored before
+    // it, and the timer starts by itself at it (no waiting for a first key).
+    startAt: number;
+}
+
+export function useTypingEngine(race?: RaceEngineOptions) {
+    const mode = useTestMode();
+    const { settings } = useSettings();
+    const { quoteLength, customText, punctuation, numbers } = mode;
+    const testTime = race ? race.config.testTime : mode.testTime;
+    const testType = race ? race.config.testType : mode.testType;
+    const wordCount = race ? race.config.wordCount : mode.wordCount;
+    const isRace = race !== undefined;
+    const raceWords = race?.words;
+    const raceStartAt = race?.startAt;
+    const language: Language = settings.language;
+    // Non-English lists arrive in their own chunk; rebuild once they land.
+    const [listsReady, setListsReady] = useState(() => language === 'english' || languagesReady());
+    useEffect(() => {
+        if (language === 'english' || languagesReady()) return;
+        let live = true;
+        loadLanguages().then(() => live && setListsReady(true)).catch(() => {});
+        return () => {
+            live = false;
+        };
+    }, [language]);
+
+    // Sound and confidence mode are read at key time without re-creating
+    // the key handler.
+    const settingsRef = useRef(settings);
+    settingsRef.current = settings;
+    const replayRef = useRef<ReplayEvent[]>([]);
+    const lastKeyAtRef = useRef<number | null>(null);
 
     const [words, setWords] = useState<string[]>(() =>
-        buildWords({ testType, wordCount, quoteLength, customText, punctuation, numbers })
+        raceWords ?? buildWords({ testType, wordCount, quoteLength, customText, punctuation, numbers, language })
     );
+    const [raceLive, setRaceLive] = useState(false);
     const [typedGrid, setTypedGrid] = useState<TypedChar[][]>(() => words.map(() => []));
     const [cursor, setCursor] = useState<Cursor>({ word: 0, char: 0 });
     const [testStart, setTestStart] = useState(false);
@@ -219,12 +270,16 @@ export function useTypingEngine() {
             correctWords: countsRef.current.correctWords,
             charMistakes: { ...mistakesRef.current },
             durationSeconds: Math.round(endMs / 1000),
+            elapsedMs: Math.round(endMs),
             timestamp: Date.now(),
             graphData,
             rawGraphData,
             errorGraphData,
+            language,
+            words: wordsRef.current.slice(0, cursorRef.current.word + 1),
+            replay: replayRef.current.slice(0, MAX_REPLAY_EVENTS),
         });
-    }, [testType, testTime, wordCount, quoteLength]);
+    }, [testType, testTime, wordCount, quoteLength, language]);
 
     const startTimer = useCallback(() => {
         startTimeRef.current = performance.now();
@@ -247,19 +302,22 @@ export function useTypingEngine() {
     }, [testType, testTime, finishTest]);
 
     const ensureWordSupply = useCallback((nextWordIndex: number) => {
-        if (testType !== "time") return;
+        // A race's text is fixed and shared: never top it up locally.
+        if (isRace || testType !== "time") return;
         if (wordsRef.current.length - nextWordIndex < REFILL_THRESHOLD) {
             const previousWord = wordsRef.current[wordsRef.current.length - 1];
-            const more = applyModifiers(genWords(WORD_BUFFER), punctuation, numbers, previousWord);
+            const more = applyModifiers(randomWords(WORD_BUFFER, language), punctuation, numbers, previousWord);
             setWords((prev) => [...prev, ...more]);
             setTypedGrid((prev) => [...prev, ...more.map(() => [])]);
         }
-    }, [testType, punctuation, numbers]);
+    }, [isRace, testType, punctuation, numbers, language]);
 
     // Instant reset (no fade) — swaps words/state right away.
     const performReset = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        const fresh = buildWords({ testType, wordCount, quoteLength, customText, punctuation, numbers });
+        const fresh = raceWords ?? buildWords({ testType, wordCount, quoteLength, customText, punctuation, numbers, language });
+        replayRef.current = [];
+        lastKeyAtRef.current = null;
         setWords(fresh);
         setTypedGrid(fresh.map(() => []));
         setCursor({ word: 0, char: 0 });
@@ -275,7 +333,7 @@ export function useTypingEngine() {
         startTimeRef.current = null;
         setGeneration((g) => g + 1);
         focusInput();
-    }, [testType, wordCount, quoteLength, customText, punctuation, numbers, focusInput]);
+    }, [raceWords, testType, wordCount, quoteLength, customText, punctuation, numbers, language, focusInput]);
 
     // Fade-out -> swap -> fade-in, matching MonkeyType's fadeOutForRestart /
     // fadeInAfterRestart sequencing. FADE_MS must match the .typing-test
@@ -292,13 +350,32 @@ export function useTypingEngine() {
     }, [performReset]);
 
     useEffect(() => {
-        resetTest();
+        // A race mounts with its state already fresh: a restart here would
+        // only risk clobbering the clock, so just take focus.
+        if (isRace) focusInput();
+        else resetTest();
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
             if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [testTime, testType, wordCount, quoteLength, customText, punctuation, numbers]);
+    }, [testTime, testType, wordCount, quoteLength, customText, punctuation, numbers, language, listsReady]);
+
+    // A race starts on the shared clock, not on the first keypress. The
+    // timer is backdated by however late this timeout fired, so everyone's
+    // elapsed time is measured from the same instant.
+    useEffect(() => {
+        if (raceStartAt === undefined) return undefined;
+        const id = setTimeout(() => {
+            setRaceLive(true);
+            setTestStart(true);
+            startTimer();
+            const late = Math.max(0, Date.now() - raceStartAt);
+            if (startTimeRef.current !== null) startTimeRef.current -= late;
+        }, Math.max(0, raceStartAt - Date.now()));
+        return () => clearTimeout(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [raceStartAt]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         // Never intercept browser/OS shortcuts (Ctrl+R, Cmd+R, Ctrl+T, ...) --
@@ -307,6 +384,12 @@ export function useTypingEngine() {
         // right out from under the browser.
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         if (testEnd || fading) return;
+
+        // Before the go signal of a race nothing counts (no false starts).
+        if (isRace && !raceLive) {
+            if (e.key.length === 1 || e.key === "Backspace") e.preventDefault();
+            return;
+        }
 
         // Zen mode has no fixed end condition — Enter finishes the test manually.
         if (e.key === "Enter" && testType === "zen" && testStart) {
@@ -329,12 +412,29 @@ export function useTypingEngine() {
         if (!isChar && !isSpace && !isBackspace) return;
         e.preventDefault();
 
+        const prefs = settingsRef.current;
+        // Confidence mode: what is typed stays typed.
+        if (isBackspace && prefs.confidence) return;
+
         if (!testStart) {
             setTestStart(true);
             startTimer();
         }
 
         const isZen = testType === "zen";
+
+        // Record the key for the replay, timed from the previous key.
+        const now = performance.now();
+        const since = lastKeyAtRef.current ?? startTimeRef.current ?? now;
+        lastKeyAtRef.current = now;
+        if (replayRef.current.length < MAX_REPLAY_EVENTS) {
+            replayRef.current.push([Math.max(0, Math.round(now - since)), isBackspace ? "\b" : e.key]);
+        }
+
+        if (prefs.sound !== "off") {
+            const wrong = isChar && !isZen && (cIdx >= target.length || e.key !== target[cIdx]);
+            playKeySound(prefs.sound, prefs.volume, wrong && prefs.errorSound);
+        }
 
         if (isSpace) {
             const typedForWord = typedGridRef.current[wIdx];
@@ -460,7 +560,7 @@ export function useTypingEngine() {
         if (isLastWord && nextChar >= target.length) {
             finishTest();
         }
-    }, [testStart, testEnd, fading, testType, startTimer, finishTest, ensureWordSupply]);
+    }, [testStart, testEnd, fading, testType, isRace, raceLive, startTimer, finishTest, ensureWordSupply]);
 
     const countdownDisplay = useMemo(() => {
         if (testType === "time") return Math.max(0, Math.ceil(testTime - elapsedMs / 1000));

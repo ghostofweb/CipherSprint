@@ -10,7 +10,26 @@ import type {
     UserAggregates,
     UserSearchResult,
     MyLeaderboardEntry,
+    Settings,
+    PersonalBestInfo,
+    RaceRecord,
+    BlockedUser,
+    ReportRow,
+    ReportUserInput,
+    Language,
 } from "@ciphersprint/shared";
+
+export interface ReplayResult {
+    _id: string;
+    mode: string;
+    modeDetail: string | number | null;
+    wpm: number;
+    accuracy: number;
+    timestamp: number;
+    language?: Language;
+    replay: [number, string][];
+    words: string[];
+}
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const TOKEN_KEY = "authToken";
@@ -74,6 +93,8 @@ export interface ProfileResult {
     isPublic: boolean;
     aggregates: UserAggregates;
     personalBests: PersonalBest[];
+    // You have blocked this person (they can't see you, you can unblock).
+    blockedByMe?: boolean;
 }
 
 export const api = {
@@ -89,11 +110,37 @@ export const api = {
         request<{ available: boolean; reason?: string }>(`/api/auth/username-available?username=${encodeURIComponent(username)}`),
     me: () => request<MeResult>("/api/auth/me", { auth: true }),
     saveResult: (payload: Record<string, unknown>) =>
-        request("/api/results", { method: "POST", body: payload, auth: true }),
+        request<{ result: { _id: string }; personalBest: PersonalBestInfo }>("/api/results", { method: "POST", body: payload, auth: true }),
     myResults: (limit = 50) => request<{ results: any[] }>(`/api/results/me?limit=${limit}`, { auth: true }),
+    resultReplay: (id: string) => request<{ result: ReplayResult }>(`/api/results/${id}/replay`, { auth: true }),
     profile: (username: string) => request<ProfileResult>(`/api/users/${encodeURIComponent(username)}`, { auth: true }),
+    raceRecord: (username: string) => request<RaceRecord>(`/api/users/${encodeURIComponent(username)}/races`, { auth: true }),
+
+    // Account
+    changePassword: (current: string, next: string) =>
+        request<AuthResult>("/api/auth/password", { method: "POST", body: { current, next }, auth: true }),
+    forgotPassword: (email: string) =>
+        request<{ ok: true; message: string; devMode: boolean }>("/api/auth/forgot", { method: "POST", body: { email } }),
+    resetPassword: (token: string, password: string) =>
+        request<AuthResult>("/api/auth/reset", { method: "POST", body: { token, password } }),
+    deleteAccount: (confirm: string, password?: string) =>
+        request<{ ok: true }>("/api/users/me", { method: "DELETE", body: { confirm, password }, auth: true }),
+
+    // Safety
+    blocks: () => request<{ blocked: BlockedUser[] }>("/api/users/me/blocks", { auth: true }),
+    block: (username: string) => request<{ ok: true }>("/api/users/me/blocks", { method: "POST", body: { username }, auth: true }),
+    unblock: (username: string) =>
+        request<{ ok: true }>(`/api/users/me/blocks/${encodeURIComponent(username)}`, { method: "DELETE", auth: true }),
+    report: (input: ReportUserInput) => request<{ ok: true }>("/api/reports", { method: "POST", body: input, auth: true }),
+    adminReports: (status: "open" | "resolved" = "open") =>
+        request<{ reports: ReportRow[] }>(`/api/admin/reports?status=${status}`, { auth: true }),
+    setReportStatus: (id: string, status: "open" | "resolved") =>
+        request<{ ok: true }>(`/api/admin/reports/${id}`, { method: "PATCH", body: { status }, auth: true }),
     updateVisibility: (isPublic: boolean) =>
         request<{ isPublic: boolean }>("/api/users/me/visibility", { method: "PATCH", body: { isPublic }, auth: true }),
+    getSettings: () => request<{ settings: Settings | null }>("/api/users/me/settings", { auth: true }),
+    saveSettings: (settings: Settings) =>
+        request<{ settings: Settings; applied: boolean }>("/api/users/me/settings", { method: "PUT", body: settings, auth: true }),
     updatePresence: (showPresence: boolean) =>
         request<{ showPresence: boolean }>("/api/users/me/presence", { method: "PATCH", body: { showPresence }, auth: true }),
     updateAvatar: (url: string, publicId: string) =>
@@ -107,14 +154,20 @@ export const api = {
         ),
     searchUsers: (q: string) =>
         request<{ users: UserSearchResult[] }>(`/api/users/search?q=${encodeURIComponent(q)}`, { auth: true }),
-    leaderboard: (mode: string, modeDetail: string | number | undefined, limit = 50) =>
+    leaderboard: (
+        mode: string,
+        modeDetail: string | number | undefined,
+        limit = 50,
+        { language = "english", scope = "all" }: { language?: Language; scope?: "all" | "friends" } = {}
+    ) =>
         request<{ leaderboard: LeaderboardRow[] }>(
-            `/api/leaderboard?mode=${encodeURIComponent(mode)}&modeDetail=${encodeURIComponent(modeDetail ?? "-")}&limit=${limit}`
+            `/api/leaderboard?mode=${encodeURIComponent(mode)}&modeDetail=${encodeURIComponent(modeDetail ?? "-")}&limit=${limit}&language=${language}&scope=${scope}`,
+            { auth: true }
         ),
 
-    myLeaderboardEntry: (mode: string, modeDetail: string | number | undefined) =>
+    myLeaderboardEntry: (mode: string, modeDetail: string | number | undefined, language: Language = "english") =>
         request<{ entry: MyLeaderboardEntry | null }>(
-            `/api/leaderboard/me?mode=${encodeURIComponent(mode)}&modeDetail=${encodeURIComponent(modeDetail ?? "-")}`,
+            `/api/leaderboard/me?mode=${encodeURIComponent(mode)}&modeDetail=${encodeURIComponent(modeDetail ?? "-")}&language=${language}`,
             { auth: true }
         ),
 

@@ -17,6 +17,10 @@ interface FriendRowProps {
     removing: boolean;
     onOpen: () => void;
     onProfile: () => void;
+    onChallenge: () => void;
+    onWatch: (code: string) => void;
+    onBlock: () => void;
+    onReport: () => void;
     onAskRemove: () => void;
     onCancelRemove: () => void;
     onConfirmRemove: () => void;
@@ -29,7 +33,7 @@ function preview(friend: FriendRowData, me: string): string | null {
     return friend.lastMessageSenderUsername === me ? `You: ${friend.lastMessageText}` : friend.lastMessageText;
 }
 
-function FriendRow({ friend, me, query, confirming, removing, onOpen, onProfile, onAskRemove, onCancelRemove, onConfirmRemove }: FriendRowProps) {
+function FriendRow({ friend, me, query, confirming, removing, onOpen, onProfile, onChallenge, onWatch, onBlock, onReport, onAskRemove, onCancelRemove, onConfirmRemove }: FriendRowProps) {
     const [anchor, setAnchor] = useState<HTMLElement | null>(null);
     const text = preview(friend, me);
     const unread = friend.unreadCount > 0;
@@ -52,13 +56,20 @@ function FriendRow({ friend, me, query, confirming, removing, onOpen, onProfile,
                 <Avatar url={friend.avatarUrl} name={friend.username} size="md" presence={friend.online ? 'online' : 'offline'} />
                 <span className="sp-row__text">
                     <span className="sp-row__name"><Highlight text={friend.username} query={query} /></span>
-                    <span className={cx('sp-row__sub', !text && 'is-faint')}>{text ?? (friend.online ? 'online' : 'offline')}</span>
+                    {friend.racingCode ? (
+                        <span className="sp-row__sub is-racing">racing now<span className="rl-caret" aria-hidden="true" /></span>
+                    ) : (
+                        <span className={cx('sp-row__sub', !text && 'is-faint')}>{text ?? (friend.online ? 'online' : 'offline')}</span>
+                    )}
                 </span>
                 <span className="sp-row__meta">
                     {friend.lastMessageAt && <time className="sp-row__time tnum" dateTime={friend.lastMessageAt}>{formatRelativeTime(friend.lastMessageAt)}</time>}
                     <Count n={friend.unreadCount} accent />
                 </span>
             </button>
+            {friend.racingCode && (
+                <IconButton icon="eye" size="sm" label={`Watch ${friend.username} race`} className="sp-row__watch" onClick={() => onWatch(friend.racingCode as string)} />
+            )}
             <IconButton
                 icon="more"
                 size="sm"
@@ -72,7 +83,10 @@ function FriendRow({ friend, me, query, confirming, removing, onOpen, onProfile,
                 onClose={() => setAnchor(null)}
                 actions={[
                     { id: 'profile', label: 'View profile', icon: 'user', onSelect: onProfile },
+                    { id: 'race', label: 'Challenge to a race', icon: 'race', onSelect: onChallenge },
                     { id: 'remove', label: 'Remove friend', icon: 'user-minus', danger: true, onSelect: onAskRemove },
+                    { id: 'report', label: 'Report', icon: 'flag', danger: true, onSelect: onReport },
+                    { id: 'block', label: 'Block', icon: 'block', danger: true, onSelect: onBlock },
                 ]}
             />
         </li>

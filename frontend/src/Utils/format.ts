@@ -1,7 +1,10 @@
+// Personal bests for other languages file under "<detail>@<language>".
 export const modeLabel = (mode: string, detail: string | number | null | undefined): string => {
-    if (mode === 'time') return `time ${detail}s`;
-    if (mode === 'words') return `words ${detail}`;
-    if (mode === 'quote') return `quote ${detail}`;
+    const [d, lang] = String(detail ?? '').split('@');
+    const suffix = lang ? ` · ${lang}` : '';
+    if (mode === 'time') return `time ${d}s${suffix}`;
+    if (mode === 'words') return `words ${d}${suffix}`;
+    if (mode === 'quote') return `quote ${d}`;
     if (mode === 'zen') return 'zen';
     if (mode === 'custom') return 'custom';
     return mode ?? '-';

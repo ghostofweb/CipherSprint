@@ -1,63 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import Dialog from './ui/Dialog';
 import Button from './ui/Button';
-import { themeOptions } from '../Utils/themeOptions';
+import ThemeGrid from './ThemeGrid';
 import { useTheme } from '../Context/ThemeContext';
-import { cx } from '../Utils/cx';
 
 interface ThemePickerModalProps {
     open: boolean;
     onClose: () => void;
 }
 
+// A click chooses (and saves) a theme; pointing at one only previews it.
 function ThemePickerModal({ open, onClose }: ThemePickerModalProps) {
-    const { theme, setTheme } = useTheme();
-    const originalThemeRef = useRef(theme);
-
-    useEffect(() => {
-        if (open) originalThemeRef.current = theme;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open]);
-
-    // Previewing applies live; closing without applying restores the original.
-    const handleCancel = () => {
-        setTheme(originalThemeRef.current);
+    const { previewTheme } = useTheme();
+    const close = () => {
+        previewTheme(null);
         onClose();
     };
-
-    const handleApply = () => {
-        localStorage.setItem('theme', JSON.stringify(theme));
-        onClose();
-    };
-
     return (
-        <Dialog open={open} onClose={handleCancel} title="Choose a theme" width={720}>
-            <div className="theme-grid">
-                {themeOptions.map(({ label, value }) => {
-                    const isSelected = value.label === theme.label;
-                    return (
-                        <button
-                            type="button"
-                            key={label}
-                            className={cx('theme-card', isSelected && 'selected')}
-                            style={isSelected ? { borderColor: value.cursorColor } : undefined}
-                            aria-pressed={isSelected}
-                            onClick={() => setTheme(value)}
-                        >
-                            <span className="theme-preview-strip" style={{ background: value.background }}>
-                                <span style={{ color: value.correctWordColor }}>the</span>{' '}
-                                <span style={{ color: value.wordColor }}>quick</span>{' '}
-                                <span style={{ color: value.incorrectWordColor }}>fox</span>
-                                <span className="theme-preview-caret" style={{ background: value.cursorColor }} />
-                            </span>
-                            <span className="theme-card-label">{label}</span>
-                        </button>
-                    );
-                })}
-            </div>
+        <Dialog open={open} onClose={close} title="Themes" width={760}>
+            <ThemeGrid />
             <div className="ui-dialog__actions">
-                <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
-                <Button variant="primary" onClick={handleApply}>Apply</Button>
+                <Button variant="primary" onClick={close}>Done</Button>
             </div>
         </Dialog>
     );

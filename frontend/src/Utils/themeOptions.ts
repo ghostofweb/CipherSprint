@@ -20,6 +20,30 @@ export interface Theme {
   cursorColor: string;
 }
 
+// CipherSprint's own palettes. Amber on graphite comes from typing
+// hardware (teletypes, amber-phosphor terminals), not from an editor theme.
+const cipherTheme: Theme = {
+  label: 'Cipher',
+  background: '#17181b',
+  textColor: '#e9e4d8',
+  subTextColor: '#75716a',
+  wordColor: '#75716a',
+  correctWordColor: '#e9e4d8',
+  incorrectWordColor: '#e0554c',
+  cursorColor: '#f0a63a',
+};
+
+const cipherPaperTheme: Theme = {
+  label: 'Cipher Paper',
+  background: '#e7e8e4',
+  textColor: '#1c2024',
+  subTextColor: '#80857f',
+  wordColor: '#80857f',
+  correctWordColor: '#1c2024',
+  incorrectWordColor: '#c2362d',
+  cursorColor: '#a85f00',
+};
+
 const draculaTheme: Theme = {
   label: 'Dracula',
   background: '#282a36',
@@ -560,6 +584,8 @@ const dinoTheme: Theme = {
 };
 
 export const themeOptions: { label: string; value: Theme }[] = [
+  { label: "Cipher", value: cipherTheme },
+  { label: "Cipher Paper", value: cipherPaperTheme },
   { label: "Dracula", value: draculaTheme },
   { label: "Nord", value: nordTheme },
   { label: "Gruvbox Dark", value: gruvboxDarkTheme },
@@ -610,3 +636,7 @@ export const themeOptions: { label: string; value: Theme }[] = [
   { label: "Olive", value: oliveTheme },
   { label: "Dino", value: dinoTheme },
 ];
+
+// The two CipherSprint originals head every theme list.
+export const isOriginalTheme = (label: string): boolean => label.startsWith('Cipher');
+export const DEFAULT_THEME: Theme = cipherTheme;

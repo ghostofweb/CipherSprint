@@ -12,12 +12,15 @@ import friendsRoutes from "./routes/friends";
 import groupsRoutes from "./routes/groups";
 import dmRoutes from "./routes/dm";
 import mediaRoutes from "./routes/media";
+import safetyRoutes from "./routes/safety";
 import { attachSocket } from "./socket";
 import { runMigrations } from "./utils/migrations";
 
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000" || "http://localhost:3002";
 
 const app = express();
+// Behind a hosting proxy (Render, Fly, ...), rate limits need the real client IP.
+if (process.env.TRUST_PROXY) app.set("trust proxy", 1);
 app.use(cors({ origin: clientOrigin }));
 app.use(express.json());
 
@@ -29,6 +32,7 @@ app.use("/api/friends", friendsRoutes);
 app.use("/api/groups", groupsRoutes);
 app.use("/api/dm", dmRoutes);
 app.use("/api/media", mediaRoutes);
+app.use("/api", safetyRoutes);
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err);

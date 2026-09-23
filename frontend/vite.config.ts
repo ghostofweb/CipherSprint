@@ -1,9 +1,43 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  plugins: [svgr(), react()],
+  plugins: [
+    svgr(),
+    react(),
+    // Offline support: the app shell, fonts and word lists are cached, so the
+    // solo typing test runs with no connection. public/manifest.json stays the
+    // manifest; the plugin only adds the service worker.
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      manifest: false,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/socket\.io\//],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-css' },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     port: 3001,
   },

@@ -1,13 +1,15 @@
 import { Server, Socket } from "socket.io";
 import { Server as HttpServer } from "http";
-import jwt from "jsonwebtoken";
+import { verifySession } from "./utils/tokens";
 import { sendMessageSchema } from "@ciphersprint/shared";
 import User from "./models/User";
 import { isGroupMember, isDirectParticipant, getGroupMemberIds } from "./utils/chatAccess";
 import DirectConversation from "./models/DirectConversation";
-import Friendship from "./models/Friendship";
 import ConversationRead from "./models/ConversationRead";
 import { postMessage } from "./utils/messages";
+import { userRoom, friendIdsOf } from "./utils/socketRooms";
+import { isBlockedBetween } from "./utils/blocks";
+import { registerRaceHandlers } from "./race/handlers";
 import type { ChatContextType } from "./models/Message";
 
 interface AuthedSocket extends Socket {
@@ -23,11 +25,10 @@ interface RoomRef {
 type Ack = ((response: { ok: boolean; error?: string; message?: unknown; lastReadAt?: Date | null }) => void) | undefined;
 
 const roomName = ({ contextType, contextId }: RoomRef) => `${contextType}:${contextId}`;
-// Every authenticated socket also joins its own personal room, so the
-// server can push a notification (a friend request, a new message in a
-// chat you don't currently have open) to a user regardless of what page
-// or conversation room they're actually in.
-const userRoom = (userId: string) => `user:${userId}`;
+// Every authenticated socket also joins its own personal room (see
+// utils/socketRooms), so the server can push a notification (a friend
+// request, a new message in a chat you don't currently have open) to a user
+// regardless of what page or conversation room they're actually in.
 
 // Re-validates membership server-side before letting a socket join a room
 // or post into it -- the client-provided contextType/contextId can't be
@@ -39,7 +40,9 @@ async function canAccess(contextType: ChatContextType, contextId: string, userId
   }
   if (contextType === "dm") {
     const convo = await DirectConversation.findById(contextId);
-    return convo ? isDirectParticipant(convo, userId) : false;
+    if (!convo || !isDirectParticipant(convo, userId)) return false;
+    // A block closes the conversation both ways.
+    return !(await isBlockedBetween(String(convo.participantA), String(convo.participantB)));
   }
   return false;
 }
@@ -102,16 +105,6 @@ export function isOnline(userId: string): boolean {
   return (liveSockets.get(userId)?.size ?? 0) > 0;
 }
 
-async function friendIdsOf(userId: string): Promise<string[]> {
-  const rows = await Friendship.find({
-    status: "accepted",
-    $or: [{ requester: userId }, { recipient: userId }],
-  })
-    .select("requester recipient -_id")
-    .lean();
-  return rows.map((r) => (String(r.requester) === userId ? String(r.recipient) : String(r.requester)));
-}
-
 async function emitPresence(io: Server, userId: string, online: boolean) {
   for (const friendId of await friendIdsOf(userId)) {
     io.to(userRoom(friendId)).emit("presence:update", { userId, online });
@@ -144,10 +137,11 @@ export function attachSocket(httpServer: HttpServer, corsOrigin: string) {
     try {
       const token = socket.handshake.auth?.token;
       if (!token) throw new Error("Not authenticated");
-      const payload = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
-      const user = await User.findById(payload.userId).select("username").lean();
+      const userId = await verifySession(token);
+      if (!userId) throw new Error("Not authenticated");
+      const user = await User.findById(userId).select("username").lean();
       if (!user) throw new Error("Not authenticated");
-      (socket as AuthedSocket).userId = String(payload.userId);
+      (socket as AuthedSocket).userId = userId;
       (socket as AuthedSocket).username = user.username;
       next();
     } catch {
@@ -171,6 +165,8 @@ export function attachSocket(httpServer: HttpServer, corsOrigin: string) {
       announcedOnline.add(authed.userId);
       announcePresence(io, authed.userId, true).catch(() => {});
     }
+
+    registerRaceHandlers(io, socket);
 
     socket.on("disconnect", () => {
       const set = liveSockets.get(authed.userId);

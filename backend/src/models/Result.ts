@@ -16,6 +16,10 @@ export interface IResult extends Document {
   charMistakes: Record<string, number>;
   durationSeconds?: number;
   timestamp: number;
+  language: string;
+  replay?: [number, string][];
+  hasReplay?: boolean;
+  words?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +41,11 @@ const resultSchema = new Schema<IResult>(
     charMistakes: { type: Schema.Types.Mixed, default: {} },
     durationSeconds: Number,
     timestamp: { type: Number, required: true },
+    language: { type: String, default: "english" },
+    // Heavy fields: excluded from list queries, loaded for one replay.
+    replay: { type: [Schema.Types.Mixed], default: undefined, select: false },
+    hasReplay: { type: Boolean, default: false },
+    words: { type: [String], default: undefined, select: false },
   },
   { timestamps: true }
 );

@@ -17,12 +17,15 @@ import { usePeopleSearch, MIN_SEARCH_LENGTH } from '../../Hooks/usePeopleSearch'
 import { resolveRelationship } from '../../Utils/relationship';
 import { cx } from '../../Utils/cx';
 import Icon from '../ui/Icon';
+import { BlockDialog, ReportDialog } from '../safety/SafetyDialogs';
 
 function FriendsTab() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { friends, requests, loadingFriends, openChat, close } = useSocial();
+    const { friends, requests, loadingFriends, openChat, close, refreshFriends } = useSocial();
     const actions = usePersonActions();
+    const [reporting, setReporting] = useState<string | null>(null);
+    const [blocking, setBlocking] = useState<string | null>(null);
     const [query, setQuery] = useState('');
     const [confirming, setConfirming] = useState<string | null>(null);
     const [showSent, setShowSent] = useState(false);
@@ -176,6 +179,16 @@ function FriendsTab() {
                                                 close();
                                                 navigate(`/u/${f.username}`);
                                             }}
+                                            onChallenge={() => {
+                                                close();
+                                                navigate(`/race?with=${encodeURIComponent(f.username)}`);
+                                            }}
+                                            onWatch={(code) => {
+                                                close();
+                                                navigate(`/race/${code}`);
+                                            }}
+                                            onReport={() => setReporting(f.username)}
+                                            onBlock={() => setBlocking(f.username)}
                                             onAskRemove={() => setConfirming(f.userId)}
                                             onCancelRemove={() => setConfirming(null)}
                                             onConfirmRemove={() => removeFriend(f.username, f.userId)}
@@ -253,6 +266,8 @@ function FriendsTab() {
                     </section>
                 )}
             </div>
+            <ReportDialog target={reporting ? { username: reporting, kind: 'profile' } : null} onClose={() => setReporting(null)} />
+            <BlockDialog username={blocking} onClose={() => setBlocking(null)} onBlocked={() => void refreshFriends()} />
         </div>
     );
 }

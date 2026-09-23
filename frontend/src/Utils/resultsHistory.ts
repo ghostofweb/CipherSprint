@@ -225,3 +225,45 @@ export function getAggregates(): Aggregates {
         recent: history.slice(-20).reverse(),
     };
 }
+
+// ---- Personal best for guests (accounts get this from the server) ----
+
+// The best wpm in this browser's history for one category, before the
+// result just saved (pass `excludeTimestamp` to skip it).
+export function localBest(mode: string, modeDetail: string | number | null, excludeTimestamp?: number): number | null {
+    const matches = getHistory().filter(
+        (e) => e.mode === mode && String(e.modeDetail ?? '-') === String(modeDetail ?? '-') && e.timestamp !== excludeTimestamp
+    );
+    return matches.length ? Math.max(...matches.map((e) => e.wpm)) : null;
+}
+
+// ---- The most recent replay, for guests and for "watch replay" before sync ----
+
+const REPLAY_KEY = 'lastReplay';
+
+export interface StoredReplay {
+    mode: string;
+    modeDetail: string | number | null;
+    wpm: number;
+    accuracy: number;
+    timestamp: number;
+    words: string[];
+    replay: [number, string][];
+}
+
+export function saveLastReplay(r: StoredReplay) {
+    try {
+        localStorage.setItem(REPLAY_KEY, JSON.stringify(r));
+    } catch {
+        // A very long replay may not fit; it is a convenience, not a record.
+    }
+}
+
+export function getLastReplay(): StoredReplay | null {
+    try {
+        const v = JSON.parse(localStorage.getItem(REPLAY_KEY) as string);
+        return v && Array.isArray(v.replay) && Array.isArray(v.words) ? v : null;
+    } catch {
+        return null;
+    }
+}

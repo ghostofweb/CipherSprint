@@ -7,14 +7,30 @@
     <link rel="apple-touch-icon" href="/brand/apple-touch-icon-180.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#282a36" />
-    <meta name="description" content="CipherSprint: a minimal typing test with friends, groups and leaderboards." />
+    <meta name="theme-color" content="#17181b" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- IBM Plex Mono is the brand face; the others are optional test fonts (Settings). -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Fira+Code:wght@400;600&family=Roboto+Mono:wght@400;600&display=swap" />
+    <meta name="description" content="CipherSprint: a typing test that decodes as you type. Race friends live, find your weak keys, and watch your replays." />
     <title>CipherSprint</title>
+    <!-- Paint the saved theme's background before the app loads, so the page
+         never flashes another colour on the way in. -->
+    <style>:root{--bg:#17181b;--text:#e9e4d8}html,body{background:var(--bg);color:var(--text)}</style>
+    <script>
+      try {
+        var t = JSON.parse(localStorage.getItem('theme'));
+        if (t && t.background) {
+          document.documentElement.style.setProperty('--bg', t.background);
+          document.documentElement.style.setProperty('--text', t.textColor);
+        }
+      } catch (e) {}
+    </script>
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="CipherSprint" />
     <meta property="og:title" content="CipherSprint" />
-    <meta property="og:description" content="A minimal typing test. Friends, groups, leaderboards." />
+    <meta property="og:description" content="A typing test that decodes as you type. Live 1v1 races, keyboard heatmaps, replays." />
     <!-- Crawlers need an absolute URL here; set it to the deployed origin + this path at release. -->
     <meta property="og:image" content="/brand/og-image-1200x630.png" />
     <meta property="og:image:width" content="1200" />

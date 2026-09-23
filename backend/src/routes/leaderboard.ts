@@ -3,22 +3,33 @@ import PersonalBest from "../models/PersonalBest";
 import User from "../models/User";
 import asyncHandler from "../utils/asyncHandler";
 import requireAuth from "../middleware/requireAuth";
+import optionalAuth from "../middleware/optionalAuth";
+import { categoryDetail } from "@ciphersprint/shared";
+import { friendIdsOf } from "../utils/socketRooms";
 
 const router = express.Router();
 
 router.get(
   "/",
+  optionalAuth,
   asyncHandler(async (req: Request, res: Response) => {
-    const { mode, modeDetail, limit } = req.query;
+    const { mode, modeDetail, limit, language, scope } = req.query;
     if (!mode) return res.status(400).json({ error: "mode query param is required" });
 
     const lim = Math.min(parseInt(String(limit), 10) || 50, 100);
-    const detail = String(modeDetail ?? "-");
+    const detail = mode === "quote" ? String(modeDetail ?? "-") : categoryDetail(modeDetail as string, language as string);
+
+    // "friends": you and your friends only.
+    const filter: Record<string, unknown> = { mode: String(mode), modeDetail: detail };
+    if (scope === "friends") {
+      if (!req.userId) return res.status(401).json({ error: "Log in to see your friends' leaderboard." });
+      filter.userId = { $in: [req.userId, ...(await friendIdsOf(String(req.userId)))] };
+    }
 
     // Fully served by the { mode: 1, modeDetail: 1, wpm: -1 } index: no
     // in-memory scan/sort, DB does the ranking and only the top `lim`
     // documents ever leave Mongo.
-    const rows = await PersonalBest.find({ mode: String(mode), modeDetail: detail })
+    const rows = await PersonalBest.find(filter)
       .sort({ wpm: -1 })
       .limit(lim)
       .select("userId username wpm accuracy consistency -_id")
@@ -42,9 +53,9 @@ router.get(
   "/me",
   requireAuth,
   asyncHandler(async (req: Request, res: Response) => {
-    const { mode, modeDetail } = req.query;
+    const { mode, modeDetail, language } = req.query;
     if (!mode) return res.status(400).json({ error: "mode query param is required" });
-    const detail = String(modeDetail ?? "-");
+    const detail = mode === "quote" ? String(modeDetail ?? "-") : categoryDetail(modeDetail as string, language as string);
 
     const mine = await PersonalBest.findOne({ userId: req.userId, mode: String(mode), modeDetail: detail })
       .select("username wpm accuracy consistency -_id")

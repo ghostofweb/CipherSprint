@@ -1,3 +1,5 @@
+import { isBlockedBetween } from "../utils/blocks";
+import { racingCodeOf } from "../race/handlers";
 import express, { Request, Response } from "express";
 import { Types } from "mongoose";
 import { friendRequestSchema } from "@ciphersprint/shared";
@@ -42,6 +44,9 @@ router.post(
     if (!target) return res.status(404).json({ error: "User not found" });
     if (String(target._id) === String(req.userId)) {
       return res.status(400).json({ error: "You can't friend yourself" });
+    }
+    if (await isBlockedBetween(String(req.userId), String(target._id))) {
+      return res.status(403).json({ error: "You can't add this person." });
     }
 
     const existing = await Friendship.findOne({
@@ -182,6 +187,7 @@ router.get(
           unreadCount,
           // A friend who opted out of presence always reads as offline.
           online: friend.showPresence !== false && isOnline(String(friend._id)),
+          racingCode: racingCodeOf(String(friend._id)),
         };
       })
     );

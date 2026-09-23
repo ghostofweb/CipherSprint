@@ -4,6 +4,7 @@ import Message from "../models/Message";
 import requireAuth from "../middleware/requireAuth";
 import asyncHandler from "../utils/asyncHandler";
 import { areFriends, getOrCreateDirectConversation } from "../utils/chatAccess";
+import { isBlockedBetween } from "../utils/blocks";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -17,6 +18,9 @@ router.post(
       return res.status(400).json({ error: "You can't message yourself" });
     }
 
+    if (await isBlockedBetween(String(req.userId), String(target._id))) {
+      return res.status(403).json({ error: "You can't message this person." });
+    }
     const friends = await areFriends(req.userId as string, target._id);
     if (!friends) return res.status(403).json({ error: "You can only message friends" });
 
@@ -31,6 +35,9 @@ router.get(
     const target = await User.findOne({ username: req.params.username }).select("_id").lean();
     if (!target) return res.status(404).json({ error: "User not found" });
 
+    if (await isBlockedBetween(String(req.userId), String(target._id))) {
+      return res.status(403).json({ error: "You can't message this person." });
+    }
     const friends = await areFriends(req.userId as string, target._id);
     if (!friends) return res.status(403).json({ error: "You can only message friends" });
 

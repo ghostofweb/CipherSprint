@@ -1,7 +1,7 @@
 {
   "name": "CipherSprint",
   "short_name": "CipherSprint",
-  "description": "A minimal typing test with friends, groups and leaderboards.",
+  "description": "A typing test that decodes as you type. Race friends live, find your weak keys, watch your replays.",
   "icons": [
     { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
     { "src": "/brand/icon-192.png", "type": "image/png", "sizes": "192x192" },
@@ -9,7 +9,13 @@
     { "src": "/brand/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
   ],
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#282a36",
-  "background_color": "#282a36"
+  "theme_color": "#17181b",
+  "background_color": "#17181b",
+  "categories": ["education", "games", "productivity"],
+  "shortcuts": [
+    { "name": "Race a friend", "url": "/race", "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Analytics", "url": "/user", "icons": [{ "src": "/brand/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

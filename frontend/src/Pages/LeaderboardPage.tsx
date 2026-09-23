@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { LeaderboardRow, MyLeaderboardEntry } from '@ciphersprint/shared';
+import { LANGUAGES } from '@ciphersprint/shared';
+import type { Language, LeaderboardRow, MyLeaderboardEntry } from '@ciphersprint/shared';
+import { LANGUAGE_NAMES } from '../Utils/words';
 import Avatar from '../Components/Avatar';
 import Button from '../Components/ui/Button';
 import EmptyState from '../Components/ui/EmptyState';
@@ -25,8 +27,8 @@ interface ModeTab {
 // against, and custom text varies per user, so neither is meaningfully
 // comparable across accounts (matches MonkeyType's own leaderboard scope).
 const MODE_TABS: ModeTab[] = [
-    { value: 'time', label: 'time', details: [15, 30, 60], suffix: 's' },
-    { value: 'words', label: 'words', details: [15, 30, 50], suffix: '' },
+    { value: 'time', label: 'time', details: [15, 30, 60, 120], suffix: 's' },
+    { value: 'words', label: 'words', details: [15, 30, 50, 100], suffix: '' },
     { value: 'quote', label: 'quote', details: ['short', 'medium', 'long'], suffix: '' },
 ];
 
@@ -67,16 +69,19 @@ function LeaderboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [attempt, setAttempt] = useState(0);
+    const [scope, setScope] = useState<'all' | 'friends'>('all');
+    const [language, setLanguage] = useState<Language>('english');
 
     const activeTab = MODE_TABS.find((t) => t.value === mode) as ModeTab;
+    const lang = mode === 'quote' ? 'english' : language;
 
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
         setError(null);
         Promise.all([
-            api.leaderboard(mode, modeDetail, LIMIT),
-            user ? api.myLeaderboardEntry(mode, modeDetail).catch(() => ({ entry: null })) : Promise.resolve({ entry: null }),
+            api.leaderboard(mode, modeDetail, LIMIT, { language: lang, scope }),
+            user ? api.myLeaderboardEntry(mode, modeDetail, lang).catch(() => ({ entry: null })) : Promise.resolve({ entry: null }),
         ])
             .then(([board, me]) => {
                 if (cancelled) return;
@@ -86,12 +91,13 @@ function LeaderboardPage() {
             .catch((err: Error) => { if (!cancelled) setError(err.message); })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
-    }, [mode, modeDetail, user, attempt]);
+    }, [mode, modeDetail, user, attempt, scope, lang]);
 
-    // "You" is pinned under the list only when you are ranked but not in it.
+    // "You" is pinned under the list only when you are ranked but not in it
+    // (the friends board always contains you if you have a result).
     const pinned = useMemo(
-        () => (mine && !rows.some((r) => r.username === mine.username) ? mine : null),
-        [mine, rows]
+        () => (scope === 'all' && mine && !rows.some((r) => r.username === mine.username) ? mine : null),
+        [mine, rows, scope]
     );
 
     const changeMode = (value: ModeValue) => {
@@ -117,6 +123,21 @@ function LeaderboardPage() {
                     onChange={setModeDetail}
                     options={activeTab.details.map((d) => ({ value: d, label: `${d}${activeTab.suffix}` }))}
                 />
+                {user && (
+                    <Segmented<'all' | 'friends'>
+                        label="Who"
+                        value={scope}
+                        onChange={setScope}
+                        options={[{ value: 'all', label: 'everyone' }, { value: 'friends', label: 'friends' }]}
+                    />
+                )}
+                {mode !== 'quote' && (
+                    <select className="rs-select lb-lang" aria-label="Language" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+                        {LANGUAGES.map((l) => (
+                            <option key={l} value={l}>{LANGUAGE_NAMES[l]}</option>
+                        ))}
+                    </select>
+                )}
             </div>
 
             <div className="lb-wrap" aria-busy={loading}>

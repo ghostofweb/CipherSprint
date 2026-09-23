@@ -98,8 +98,11 @@ interface UpsertPersonalBestInput {
 // applies when the new score beats the existing one, the second only
 // inserts when no row exists yet for this user+category. Safe under
 // concurrent writes -- worst case a losing write is a harmless no-op.
-export async function upsertPersonalBest({ userId, username, mode, modeDetail, wpm, accuracy, consistency, timestamp }: UpsertPersonalBestInput): Promise<void> {
+// Returns what the best was before this result (null for a first result in
+// the category) and whether this one beat it.
+export async function upsertPersonalBest({ userId, username, mode, modeDetail, wpm, accuracy, consistency, timestamp }: UpsertPersonalBestInput): Promise<{ isNew: boolean; previous: number | null }> {
   const detail = String(modeDetail ?? "-");
+  const before = await PersonalBest.findOne({ userId, mode, modeDetail: detail }).select("wpm").lean();
 
   await PersonalBest.updateOne(
     { userId, mode, modeDetail: detail, wpm: { $lt: wpm } },
@@ -110,6 +113,8 @@ export async function upsertPersonalBest({ userId, username, mode, modeDetail, w
     { $setOnInsert: { userId, username, mode, modeDetail: detail, wpm, accuracy, consistency, timestamp } },
     { upsert: true }
   );
+  const previous = before ? before.wpm : null;
+  return { isNew: previous === null ? wpm > 0 : wpm > previous, previous };
 }
 
 // Public-safe read shape shared by GET /api/auth/me and GET /api/users/:username.

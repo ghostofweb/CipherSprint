@@ -30,11 +30,11 @@ try {
 }
 
 // Dracula, the default theme: the brand is dark-first.
-const BG = '#282a36';
-const FG = '#f8f8f2';
-const ACCENT = '#bd93f9';
-const UNTYPED = '#6272a4';
-const SOFT = '#a4afd6';
+const BG = '#17181b';
+const FG = '#e9e4d8';
+const ACCENT = '#f0a63a';
+const UNTYPED = '#75716a';
+const SOFT = '#b9b2a3';
 
 // "c" + caret on a rounded tile. `scale` shrinks the mark inside the tile
 // (maskable/apple icons need a safe zone); `radius` 0 gives a full-bleed tile.
@@ -48,21 +48,23 @@ const markSvg = ({ size = 64, radius = 14, scale = 1, tile = true } = {}) => `
 </svg>`.trim();
 
 const ogHtml = `<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   html,body{margin:0}
   body{width:1200px;height:630px;box-sizing:border-box;padding:72px 80px;background:${BG};color:${FG};
-       font-family:'Roboto Mono',Consolas,monospace;display:flex;flex-direction:column;justify-content:space-between}
-  .brand{display:flex;align-items:center;gap:20px;font-size:36px;font-weight:700}
-  .typed{font-size:72px;line-height:1.35;white-space:pre;font-weight:400}
+       font-family:'IBM Plex Mono',Consolas,monospace;display:flex;flex-direction:column;justify-content:space-between}
+  .brand{display:flex;align-items:center;font-size:40px;font-weight:600;letter-spacing:-0.01em}
+  .brand i{display:inline-block;width:5px;height:42px;margin:0 5px;background:${ACCENT};border-radius:2.5px}
+  .typed{font-size:68px;line-height:1.35;white-space:pre;font-weight:400}
   .typed .u{color:${UNTYPED}}
+  .typed .x{color:${UNTYPED};opacity:0.7}
   .typed .c{display:inline-block;width:6px;height:64px;margin:0 2px;background:${ACCENT};border-radius:3px;vertical-align:-10px}
   .tag{font-size:28px;color:${SOFT}}
 </style></head><body>
-  <div class="brand">${markSvg({ size: 64 })}CipherSprint</div>
+  <div class="brand">cipher<i></i>sprint</div>
   <div class="typed">the quick brown fox
-jum<span class="c"></span><span class="u">ps over the lazy dog</span></div>
-  <div class="tag">A minimal typing test. Friends, groups, leaderboards.</div>
+jum<span class="c"></span><span class="u">ps over</span><span class="x"> t#% l@&y d$g</span></div>
+  <div class="tag">A typing test that decodes as you type.</div>
 </body></html>`;
 
 // Minimal ICO container with embedded PNGs (supported since Windows Vista).

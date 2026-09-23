@@ -40,6 +40,52 @@ const mix = (a: string, b: string, t: number): string => {
     return toHex([ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t]);
 };
 
+const rgbToHsl = ([r, g, b]: [number, number, number]): [number, number, number] => {
+    const rn = r / 255, gn = g / 255, bn = b / 255;
+    const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+    const l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h: number;
+    if (max === rn) h = (gn - bn) / d + (gn < bn ? 6 : 0);
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+    return [h * 60, s, l];
+};
+
+const hslToRgb = ([h, s, l]: [number, number, number]): [number, number, number] => {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const hp = (((h % 360) + 360) % 360) / 60;
+    const x = c * (1 - Math.abs((hp % 2) - 1));
+    const [r1, g1, b1] =
+        hp < 1 ? [c, x, 0] : hp < 2 ? [x, c, 0] : hp < 3 ? [0, c, x] : hp < 4 ? [0, x, c] : hp < 5 ? [x, 0, c] : [c, 0, x];
+    const m = l - c / 2;
+    return [(r1 + m) * 255, (g1 + m) * 255, (b1 + m) * 255];
+};
+
+export const hueDistance = (a: number, b: number): number => {
+    const d = Math.abs(a - b) % 360;
+    return d > 180 ? 360 - d : d;
+};
+
+export const hueOf = (hex: string): number => rgbToHsl(parse(hex))[0];
+
+// The second racer's colour. The accent turned around the wheel so the two
+// are told apart at a glance, kept vivid and mid-light so it reads on dark
+// and light themes alike, and pushed away from the danger red so "opponent"
+// is never mistaken for "mistake".
+export function deriveRival(accent: string, danger: string, bg: string, towards: string): string {
+    const [accentHue, accentSat] = rgbToHsl(parse(accent));
+    const dangerHue = rgbToHsl(parse(danger))[0];
+    // A grey accent has no hue to turn; give the rival a definite one.
+    let hue = accentSat < 0.15 ? 205 : (accentHue + 150) % 360;
+    if (hueDistance(hue, dangerHue) < 35) hue = (hue + 70) % 360;
+    const sat = Math.min(0.8, Math.max(0.55, accentSat));
+    const light = luminance(bg) > 0.5 ? 0.38 : 0.62;
+    return ensureContrast(toHex(hslToRgb([hue, sat, light])), bg, 3, towards);
+}
+
 // Smallest ratio of fg against any of the backgrounds it may sit on.
 const worstContrast = (fg: string, bgs: string[]) => Math.min(...bgs.map((bg) => contrast(fg, bg)));
 
@@ -78,10 +124,15 @@ export function deriveUiTokens(theme: Theme): Record<string, string> {
     const raised = mix(bg, towards, 0.14);
     const surfaces = [bg, raised];
 
+    const rival = deriveRival(accent, danger, bg, towards);
+
     return {
         '--muted': ensureContrast(sub, surfaces, AA, towards),
         '--accent-text': ensureContrast(accent, surfaces, AA, towards),
         '--danger-text': ensureContrast(danger, surfaces, AA, towards),
         '--on-accent': onAccent,
+        // Race opponent: the caret/lane fill, and a text-safe variant for tags.
+        '--rival': rival,
+        '--rival-text': ensureContrast(rival, surfaces, AA, towards),
     };
 }

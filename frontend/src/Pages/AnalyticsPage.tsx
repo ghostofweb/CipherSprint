@@ -1,30 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { PersonalBest } from '@ciphersprint/shared';
 import HistoryGraph from '../Components/HistoryGraph';
+import KeyboardHeatmap from '../Components/KeyboardHeatmap';
+import DecryptText from '../Components/DecryptText';
 import Button from '../Components/ui/Button';
+import Icon from '../Components/ui/Icon';
 import EmptyState from '../Components/ui/EmptyState';
 import { Skeleton } from '../Components/ui/Skeleton';
 import { NoTestsArt } from '../Components/assets/illustrations';
 import ActivityCalendar from '../Components/ActivityCalendar';
 import { getAggregates, Aggregates, HistoryEntry } from '../Utils/resultsHistory';
 import { useAuth } from '../Context/AuthContext';
+import { usePractice } from '../Hooks/usePractice';
+import { topMistakeKeys } from '../Utils/practice';
 import { api } from '../Utils/api';
 import { modeLabel, formatDuration } from '../Utils/format';
 
-const charLabel = (char: string) => (char === ' ' ? 'space' : char);
-
-type RemoteStats = Aggregates & { personalBests: PersonalBest[]; recent: HistoryEntry[] };
+type RecentEntry = HistoryEntry & { _id?: string; hasReplay?: boolean };
+type RemoteStats = Aggregates & { personalBests: PersonalBest[]; recent: RecentEntry[] };
 
 function AnalyticsPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const practise = usePractice();
     const [remoteStats, setRemoteStats] = useState<RemoteStats | null>(null);
     const [loadingRemote, setLoadingRemote] = useState(!!user);
 
-    // Logged in: source from the synced backend history. Logged out:
-    // fall back to the localStorage aggregates, which always works and is
-    // recomputed on every mount (cheap -- localStorage read + linear scan).
+    // Signed in: the account's history. Otherwise this browser's.
     useEffect(() => {
         if (!user) {
             setRemoteStats(null);
@@ -32,7 +35,7 @@ function AnalyticsPage() {
             return;
         }
         setLoadingRemote(true);
-        Promise.all([api.me(), api.myResults(20)])
+        Promise.all([api.me(), api.myResults(50)])
             .then(([meRes, resultsRes]) => {
                 setRemoteStats({ ...meRes.aggregates, personalBests: meRes.personalBests, recent: resultsRes.results } as RemoteStats);
             })
@@ -44,8 +47,8 @@ function AnalyticsPage() {
         return (
             <>
                 <h1 className="page-title">Analytics</h1>
-                <div className="analytics-tiles">
-                    {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} height={48} />)}
+                <div className="an-tiles">
+                    {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} height={64} />)}
                 </div>
                 <Skeleton height={260} />
             </>
@@ -53,14 +56,12 @@ function AnalyticsPage() {
     }
 
     const stats: RemoteStats | Aggregates = user ? (remoteStats || getAggregates()) : getAggregates();
+    const recent = stats.recent as RecentEntry[];
 
     const personalBests = (Array.isArray(stats.personalBests) ? stats.personalBests : Object.values(stats.personalBests))
         .slice()
         .sort((a, b) => b.wpm - a.wpm);
-    const topMistakes = Object.entries(stats.charMistakes)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-    const maxMistakeCount = topMistakes.length ? topMistakes[0][1] : 1;
+    const weakKeys = topMistakeKeys(stats.charMistakes);
 
     if (stats.completedTests === 0) {
         return (
@@ -71,119 +72,131 @@ function AnalyticsPage() {
                     title="No tests yet"
                     action={<Button variant="primary" onClick={() => navigate('/')}>Take a test</Button>}
                 >
-                    Finish one and your speed, accuracy and problem keys will show up here.
+                    Finish one and your speed, accuracy and weak keys will show up here.
                 </EmptyState>
             </>
         );
     }
 
     return (
-        <>
-            <h1 className="page-title">Analytics</h1>
+        <div className="an">
+            <header className="an-head">
+                <h1 className="page-title">Analytics</h1>
+                <p className="an-sub">{user ? 'Every test on your account.' : 'Tests in this browser. Log in to keep them everywhere.'}</p>
+            </header>
 
-            <div className="analytics-tiles">
-                <div className="stat-block small">
-                    <div className="stat-label">tests completed</div>
-                    <div className="stat-value">{stats.completedTests}</div>
-                </div>
-                <div className="stat-block small">
-                    <div className="stat-label">time typing</div>
-                    <div className="stat-value">{formatDuration(stats.totalTimeTypingSeconds)}</div>
-                </div>
-                <div className="stat-block small">
+            <div className="an-tiles">
+                <div className="an-tile an-tile--hero">
                     <div className="stat-label">best wpm</div>
-                    <div className="stat-value">{stats.bestWpm}</div>
+                    <DecryptText className="an-hero tnum" text={String(stats.bestWpm)} />
                 </div>
-                <div className="stat-block small">
-                    <div className="stat-label">avg wpm (last 10)</div>
-                    <div className="stat-value">{stats.avgWpmLast10}</div>
+                <div className="an-tile">
+                    <div className="stat-label">avg wpm, last 10</div>
+                    <div className="an-value tnum">{stats.avgWpmLast10}</div>
                 </div>
-                <div className="stat-block small">
-                    <div className="stat-label">avg accuracy (last 10)</div>
-                    <div className="stat-value">{stats.avgAccuracyLast10}%</div>
+                <div className="an-tile">
+                    <div className="stat-label">avg accuracy, last 10</div>
+                    <div className="an-value tnum">{stats.avgAccuracyLast10}%</div>
                 </div>
-                <div className="stat-block small">
+                <div className="an-tile">
+                    <div className="stat-label">tests</div>
+                    <div className="an-value tnum">{stats.completedTests}</div>
+                </div>
+                <div className="an-tile">
+                    <div className="stat-label">time typing</div>
+                    <div className="an-value tnum">{formatDuration(stats.totalTimeTypingSeconds)}</div>
+                </div>
+                <div className="an-tile">
                     <div className="stat-label">streak</div>
-                    <div className="stat-value">{stats.streak.current}d</div>
+                    <div className="an-value tnum">{stats.streak.current}d</div>
                     <div className="stat-sub">best {stats.streak.max}d</div>
                 </div>
             </div>
 
-            <div className="analytics-section">
-                <div className="analytics-section-title">wpm over time</div>
-                <div className="analytics-graph">
-                    <HistoryGraph entries={stats.recent.slice().reverse()} />
+            <section className="an-section" aria-labelledby="an-trend">
+                <h2 className="pf-h" id="an-trend">Speed over time</h2>
+                <div className="an-graph">
+                    <HistoryGraph entries={recent.slice().reverse()} />
                 </div>
-            </div>
+            </section>
 
-            <div className="analytics-section">
-                <div className="analytics-section-title">activity</div>
-                <ActivityCalendar testActivity={stats.testActivity} />
-            </div>
+            <div className="an-cols">
+                <section className="an-section" aria-labelledby="an-keys">
+                    <h2 className="pf-h" id="an-keys">Weak keys</h2>
+                    {weakKeys.length === 0 ? (
+                        <p className="pf-empty">No mistakes recorded yet.</p>
+                    ) : (
+                        <>
+                            <KeyboardHeatmap mistakes={stats.charMistakes} />
+                            <div className="an-practice">
+                                <p>
+                                    You miss <strong>{weakKeys.join(' ')}</strong> most. A practice test packs real words with those letters.
+                                </p>
+                                <Button variant="primary" icon="target" onClick={() => practise()}>Practise weak keys</Button>
+                            </div>
+                        </>
+                    )}
+                </section>
 
-            <div className="analytics-columns">
-                <div className="analytics-section">
-                    <div className="analytics-section-title">personal bests</div>
-                    <table className="analytics-table">
+                <section className="an-section" aria-labelledby="an-pbs">
+                    <h2 className="pf-h" id="an-pbs">Personal bests</h2>
+                    <table className="pf-table">
                         <thead>
-                            <tr><th>mode</th><th>wpm</th><th>acc</th><th>consistency</th></tr>
+                            <tr><th scope="col">test</th><th scope="col" className="num">wpm</th><th scope="col" className="num">acc</th><th scope="col" className="num">consistency</th></tr>
                         </thead>
                         <tbody>
                             {personalBests.map((pb) => (
                                 <tr key={`${pb.mode}:${pb.modeDetail}`}>
                                     <td>{modeLabel(pb.mode, pb.modeDetail)}</td>
-                                    <td>{pb.wpm}</td>
-                                    <td>{pb.accuracy}%</td>
-                                    <td>{pb.consistency}%</td>
+                                    <td className="num pf-table__wpm tnum">{pb.wpm}</td>
+                                    <td className="num tnum">{pb.accuracy}%</td>
+                                    <td className="num tnum">{pb.consistency}%</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>
-
-                <div className="analytics-section">
-                    <div className="analytics-section-title">problem keys</div>
-                    {topMistakes.length === 0 ? (
-                        <div className="analytics-empty small">No mistakes recorded yet.</div>
-                    ) : (
-                        <div className="problem-keys">
-                            {topMistakes.map(([char, count]) => (
-                                <div className="problem-key-row" key={char}>
-                                    <div className="problem-key-label">{charLabel(char)}</div>
-                                    <div className="problem-key-bar-track">
-                                        <div
-                                            className="problem-key-bar"
-                                            style={{ width: `${(count / maxMistakeCount) * 100}%` }}
-                                        />
-                                    </div>
-                                    <div className="problem-key-count">{count}</div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                </section>
             </div>
 
-            <div className="analytics-section">
-                <div className="analytics-section-title">recent tests</div>
-                <table className="analytics-table">
+            <section className="an-section" aria-labelledby="an-activity">
+                <h2 className="pf-h" id="an-activity">Activity</h2>
+                <ActivityCalendar testActivity={stats.testActivity} />
+            </section>
+
+            <section className="an-section" aria-labelledby="an-recent">
+                <h2 className="pf-h" id="an-recent">Recent tests</h2>
+                <table className="pf-table an-recent">
                     <thead>
-                        <tr><th>date</th><th>mode</th><th>wpm</th><th>acc</th><th>consistency</th></tr>
+                        <tr>
+                            <th scope="col">when</th>
+                            <th scope="col">test</th>
+                            <th scope="col" className="num">wpm</th>
+                            <th scope="col" className="num">acc</th>
+                            <th scope="col" className="num">consistency</th>
+                            <th scope="col"><span className="visually-hidden">Replay</span></th>
+                        </tr>
                     </thead>
                     <tbody>
-                        {stats.recent.map((r, i) => (
-                            <tr key={i}>
-                                <td>{new Date(r.timestamp).toLocaleString()}</td>
+                        {recent.slice(0, 20).map((r, i) => (
+                            <tr key={r._id ?? i}>
+                                <td className="tnum">{new Date(r.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                                 <td>{modeLabel(r.mode, r.modeDetail)}</td>
-                                <td>{r.wpm}</td>
-                                <td>{r.accuracy}%</td>
-                                <td>{r.consistency}%</td>
+                                <td className="num pf-table__wpm tnum">{r.wpm}</td>
+                                <td className="num tnum">{r.accuracy}%</td>
+                                <td className="num tnum">{r.consistency}%</td>
+                                <td className="num">
+                                    {r._id && r.hasReplay && (
+                                        <Link to={`/replay/${r._id}`} className="an-replay" aria-label={`Watch the replay of this ${modeLabel(r.mode, r.modeDetail)} test`}>
+                                            <Icon name="replay" size={16} />
+                                        </Link>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-            </div>
-        </>
+            </section>
+        </div>
     );
 }
 

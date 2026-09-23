@@ -1,3 +1,4 @@
+import { leaveGroup } from "../utils/groupMembership";
 import express, { Request, Response } from "express";
 import { createGroupSchema, avatarUpdateSchema } from "@ciphersprint/shared";
 import Group from "../models/Group";
@@ -146,24 +147,8 @@ router.post(
 router.post(
   "/:id/leave",
   asyncHandler(async (req: Request, res: Response) => {
-    const membership = await GroupMember.findOne({ groupId: req.params.id, userId: req.userId });
-    if (!membership) return res.status(404).json({ error: "You're not a member of this group" });
-
-    await membership.deleteOne();
-    await Group.updateOne({ _id: req.params.id }, { $inc: { memberCount: -1 } });
-
-    if (membership.role === "owner") {
-      const nextOwner = await GroupMember.findOne({ groupId: req.params.id }).sort({ joinedAt: 1 });
-      if (nextOwner) {
-        nextOwner.role = "owner";
-        await nextOwner.save();
-        await Group.updateOne({ _id: req.params.id }, { ownerId: nextOwner.userId });
-      } else {
-        await Group.deleteOne({ _id: req.params.id });
-        await Message.deleteMany({ contextType: "group", contextId: req.params.id });
-      }
-    }
-
+    const outcome = await leaveGroup(req.params.id, String(req.userId));
+    if (outcome === "not-member") return res.status(404).json({ error: "You're not a member of this group" });
     res.json({ ok: true });
   })
 );
