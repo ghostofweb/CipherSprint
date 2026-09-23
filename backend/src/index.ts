@@ -29,6 +29,9 @@ if (process.env.TRUST_PROXY) app.set("trust proxy", 1);
 app.use(cors({ origin: clientOrigin }));
 app.use(express.json());
 
+// For the host's health check (Render, Railway, ...).
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/results", resultsRoutes);
 app.use("/api/users", usersRoutes);
