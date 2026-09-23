@@ -16,7 +16,12 @@ import safetyRoutes from "./routes/safety";
 import { attachSocket } from "./socket";
 import { runMigrations } from "./utils/migrations";
 
-const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000" || "http://localhost:3002";
+// One origin or a comma-separated list (e.g. the Vercel site and local dev):
+// CLIENT_ORIGIN=https://ciphersprint.vercel.app,http://localhost:3001
+const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:3001")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean);
 
 const app = express();
 // Behind a hosting proxy (Render, Fly, ...), rate limits need the real client IP.

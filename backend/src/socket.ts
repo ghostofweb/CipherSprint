@@ -129,7 +129,7 @@ export async function syncPresenceVisibility(userId: string, show: boolean): Pro
 // A single Node process handles this fine. Running more than one instance
 // later needs the @socket.io/redis-adapter so a broadcast from one process
 // reaches sockets connected to another.
-export function attachSocket(httpServer: HttpServer, corsOrigin: string) {
+export function attachSocket(httpServer: HttpServer, corsOrigin: string | string[]) {
   const io = new Server(httpServer, { cors: { origin: corsOrigin } });
   ioInstance = io;
 

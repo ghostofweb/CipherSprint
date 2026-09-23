@@ -250,7 +250,8 @@ router.post(
     const user = await User.findOne({ email: req.body.email });
     if (user) {
       const token = jwt.sign({ sub: String(user._id), purpose: RESET_PURPOSE }, resetSecret(user), { expiresIn: "30m" });
-      const origin = (process.env.CLIENT_ORIGIN || "http://localhost:3001").replace(/\/$/, "");
+      // Reset links point at the first (production) origin.
+      const origin = (process.env.CLIENT_ORIGIN || "http://localhost:3001").split(",")[0].trim().replace(/\/$/, "");
       const link = `${origin}/reset?token=${encodeURIComponent(token)}`;
       await sendMail({
         to: user.email,
