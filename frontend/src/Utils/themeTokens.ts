@@ -10,9 +10,12 @@ import type { Theme } from './themeOptions';
  * WCAG AA ratio against the background.
  */
 
-const parse = (hex: string): [number, number, number] => {
-    const h = hex.replace('#', '');
+// Tolerates anything: a missing or malformed colour reads as black rather
+// than crashing the whole app on start.
+const parse = (hex: unknown): [number, number, number] => {
+    const h = typeof hex === 'string' ? hex.replace('#', '') : '';
     const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    if (!/^[0-9a-f]{6}$/i.test(full)) return [0, 0, 0];
     return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16)) as [number, number, number];
 };
 

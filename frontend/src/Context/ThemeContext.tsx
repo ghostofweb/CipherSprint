@@ -48,12 +48,20 @@ const applyThemeVars = (theme: Theme) => {
 export const findTheme = (label: string | undefined | null): Theme | undefined =>
     label ? themeOptions.find((t) => t.value.label === label)?.value : undefined;
 
+const COLOR_KEYS: (keyof Theme)[] = ['background', 'textColor', 'subTextColor', 'wordColor', 'correctWordColor', 'incorrectWordColor', 'cursorColor'];
+const isHex = (v: unknown) => typeof v === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);
+
+// A saved theme can come from an older version of the app (different or
+// missing fields). Use the current definition of that theme by name; accept
+// the saved object only if every colour is a real hex value.
 const readStoredTheme = (): Theme => {
     try {
         const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) as string);
-        // Prefer the current definition of a named theme, so palette tweaks
-        // reach people who saved it earlier.
-        if (stored && stored.background) return findTheme(stored.label) ?? stored;
+        if (stored && typeof stored === 'object') {
+            const named = findTheme(stored.label);
+            if (named) return named;
+            if (COLOR_KEYS.every((k) => isHex(stored[k]))) return stored as Theme;
+        }
     } catch {
         // ignore malformed/legacy localStorage value
     }
