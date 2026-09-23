@@ -29,8 +29,14 @@ if (process.env.TRUST_PROXY) app.set("trust proxy", 1);
 app.use(cors({ origin: clientOrigin }));
 app.use(express.json());
 
-// For the host's health check (Render, Railway, ...).
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+// Health check for the host and uptime monitors (UptimeRobot etc.). Cheap:
+// no database query, just the connection state. 503 when the database is
+// down, so a monitor alerts on that too.
+app.get("/api/health", (_req, res) => {
+  const db = mongoose.connection.readyState === 1 ? "up" : "down";
+  res.set("Cache-Control", "no-store");
+  res.status(db === "up" ? 200 : 503).json({ ok: db === "up", db, uptime: Math.round(process.uptime()) });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/results", resultsRoutes);
